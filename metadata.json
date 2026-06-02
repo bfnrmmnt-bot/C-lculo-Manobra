@@ -1,0 +1,6 @@
+{
+  "name": "Alimentação Militar",
+  "description": "Calculadora e histórico de cotas de alimentação (N10, N5, N1) para militares brasileiros com controle automático de limites.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
