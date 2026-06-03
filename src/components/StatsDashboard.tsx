@@ -1,7 +1,7 @@
 import React from 'react';
 import { CalculationSummary } from '../types';
 import { RATES } from '../utils/calculator';
-import { DollarSign, ShieldAlert, Award, CalendarDays, Percent } from 'lucide-react';
+import { DollarSign, Banknote, Award, CalendarDays, Percent } from 'lucide-react';
 
 interface StatsDashboardProps {
   summary: CalculationSummary;
@@ -95,7 +95,7 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
             </h3>
           </div>
           <div className={`p-3 rounded-xl ${limitedDaysCount > 0 ? 'bg-rose-100 text-rose-600' : 'bg-zinc-100 text-zinc-600'}`}>
-            <ShieldAlert className="w-6 h-6" />
+            <Banknote className="w-6 h-6" />
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-zinc-150 flex justify-between items-center text-xs text-zinc-500">

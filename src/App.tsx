@@ -5,7 +5,7 @@ import { DEFAULT_MISSIONS } from './data/defaultMissions';
 import StatsDashboard from './components/StatsDashboard';
 import MissionForm from './components/MissionForm';
 import MissionHistory from './components/MissionHistory';
-import { ShieldCheck, Info, FileText, ChevronRight, User } from 'lucide-react';
+import { Banknote, Info, FileText, ChevronRight, User } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY = 'militar_diarias_missions';
 
@@ -100,7 +100,7 @@ export default function App() {
       <header className="bg-emerald-950 text-white py-6 border-b border-emerald-900" id="app-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center">
           <h1 className="text-2xl font-bold tracking-tight text-white font-sans sm:text-3xl flex items-center justify-center gap-2">
-            <ShieldCheck className="w-8 h-8 text-amber-400 animate-pulse" />
+            <Banknote className="w-8 h-8 text-amber-400 animate-pulse" />
             Cálculo de Pagamento
           </h1>
 
