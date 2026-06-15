@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, User as UserIcon, Key, AlertCircle, Eye, EyeOff, ShieldCheck, HelpCircle } from 'lucide-react';
 import { ActiveUser } from '../types';
 
@@ -20,6 +20,45 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [changeError, setChangeError] = useState('');
   const [changeSuccess, setChangeSuccess] = useState(false);
+
+  // Diagnostic states
+  const [debugInfo, setDebugInfo] = useState<string>('Testando conexão...');
+  const [debugColor, setDebugColor] = useState<string>('text-amber-600 bg-amber-50 border-amber-100');
+  const [debugSuccess, setDebugSuccess] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then(async (res) => {
+        const text = await res.text();
+        if (res.ok) {
+          try {
+            const data = JSON.parse(text);
+            if (data.apiLoaded) {
+              setDebugInfo(`Conectado ao Servidor (Ambiente: ${data.env}). Usuários carregados.`);
+              setDebugColor('text-emerald-700 bg-emerald-50 border-emerald-100');
+              setDebugSuccess(true);
+            } else {
+              setDebugInfo(`Resposta inválida. Body: ${text.slice(0, 100)}`);
+              setDebugColor('text-rose-700 bg-rose-50 border-rose-150');
+              setDebugSuccess(false);
+            }
+          } catch {
+            setDebugInfo(`Resposta não-JSON (Ex: HTML de fallback). Body: ${text.slice(0, 100)}`);
+            setDebugColor('text-rose-700 bg-rose-50 border-rose-150');
+            setDebugSuccess(false);
+          }
+        } else {
+          setDebugInfo(`Erro Servidor (Status ${res.status}). Body: ${text.slice(0, 100)}`);
+          setDebugColor('text-rose-700 bg-rose-50 border-rose-150');
+          setDebugSuccess(false);
+        }
+      })
+      .catch((err) => {
+        setDebugInfo(`Erro de Conectividade: ${err.message}`);
+        setDebugColor('text-rose-700 bg-rose-50 border-rose-150');
+        setDebugSuccess(false);
+      });
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,6 +343,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             {loading ? 'Verificando...' : 'Entrar no Sistema'}
           </button>
         </form>
+
+        {/* Safe Diagnostic Badge */}
+        <div className={`mt-6 p-3 rounded-2xl border text-[11px] leading-relaxed transition-colors duration-300 ${debugColor}`}>
+          <div className="flex items-center gap-1.5 font-bold mb-0.5">
+            <span className={`w-2 h-2 rounded-full ${debugSuccess === true ? 'bg-emerald-500 animate-pulse' : debugSuccess === false ? 'bg-rose-500' : 'bg-amber-500 animate-pulse'}`} />
+            <span>Status de Conexão:</span>
+          </div>
+          <span>{debugInfo}</span>
+        </div>
       </div>
     </div>
   );

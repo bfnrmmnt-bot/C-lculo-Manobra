@@ -85,9 +85,22 @@ async function startServer() {
   // Initialize database file
   readUsers();
 
-  // Health check
+  // Health check with diagnostics
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
+    try {
+      const users = readUsers();
+      const distPath = path.join(process.cwd(), 'dist');
+      const hasDist = fs.existsSync(distPath) && fs.existsSync(path.join(distPath, 'index.html'));
+      res.json({
+        status: "ok",
+        env: process.env.NODE_ENV || "development",
+        hasDist,
+        usersList: users.map(u => u.username),
+        apiLoaded: true
+      });
+    } catch (e: any) {
+      res.status(500).json({ status: "error", message: e?.message });
+    }
   });
 
   // Login endpoint
