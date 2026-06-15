@@ -220,7 +220,7 @@ async function startServer() {
 
   const distPath = path.join(process.cwd(), 'dist');
   const hasDist = fs.existsSync(distPath) && fs.existsSync(path.join(distPath, 'index.html'));
-  const isProduction = process.env.NODE_ENV === "production" || hasDist;
+  const isProduction = process.env.NODE_ENV === "production";
 
   console.log(`Starting server. NODE_ENV: ${process.env.NODE_ENV}, hasDist: ${hasDist}, isProduction: ${isProduction}`);
 
