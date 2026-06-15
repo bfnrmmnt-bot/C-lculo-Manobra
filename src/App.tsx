@@ -7,7 +7,7 @@ import MissionForm from './components/MissionForm';
 import MissionHistory from './components/MissionHistory';
 import { Banknote, Info, FileText, ChevronRight, User } from 'lucide-react';
 
-const LOCAL_STORAGE_KEY = 'militar_diarias_missions';
+const LOCAL_STORAGE_KEY = 'militar_diarias_missions_v3';
 
 export default function App() {
   const [missions, setMissions] = useState<Mission[]>([]);
@@ -25,9 +25,9 @@ export default function App() {
       if (stored) {
         setMissions(JSON.parse(stored));
       } else {
-        // First-run: Pre-populate with our regulatory demonstrator missions
-        setMissions(DEFAULT_MISSIONS);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(DEFAULT_MISSIONS));
+        // First-run: Start perfectly empty
+        setMissions([]);
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([]));
       }
 
       const savedRank = localStorage.getItem('militar_diarias_user_rank');
@@ -76,7 +76,7 @@ export default function App() {
       }
     } catch {
       // Fallback
-      setMissions(DEFAULT_MISSIONS);
+      setMissions([]);
     } finally {
       setIsInitialized(true);
     }
