@@ -41,10 +41,17 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         })
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseJsonError) {
+        console.error('Failed to parse server' + ' response:', responseText);
+        throw new Error(`Erro de resposta do servidor (HTTP ${response.status}). Por favor, recarregue a página.`);
+      }
 
       if (!response.ok || !data.success) {
-        setError(data.message || 'Credenciais incorretas.');
+        setError(data.message || 'Credenciais de acesso incorretas.');
         setLoading(false);
         return;
       }
@@ -60,8 +67,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         // Direct success
         onLoginSuccess(loggedUser);
       }
-    } catch (err) {
-      setError('Erro ao conectar ao servidor. Tente novamente.');
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao conectar ao servidor. Tente novamente.');
       console.error('Login error:', err);
       setLoading(false);
     }
@@ -103,7 +110,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         })
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseJsonError) {
+        throw new Error(`Erro de resposta do servidor (HTTP ${response.status}). Por favor, recarregue a página.`);
+      }
 
       if (!response.ok || !data.success) {
         setChangeError(data.message || 'Erro ao redefinir a senha.');
@@ -121,8 +134,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           });
         }
       }, 1500);
-    } catch (err) {
-      setChangeError('Erro ao conectar ao servidor. Tente novamente.');
+    } catch (err: any) {
+      setChangeError(err?.message || 'Erro ao conectar ao servidor. Tente novamente.');
       console.error('Change password error:', err);
       setLoading(false);
     }
