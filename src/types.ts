@@ -66,3 +66,11 @@ export interface CalculationSummary {
   n1Count: number;
   limitedDaysCount: number; // For the last 30 days, or across all
 }
+
+export interface ActiveUser {
+  username: string;
+  name: string;
+  isAdmin: boolean;
+  mustChangePassword: boolean;
+}
+
