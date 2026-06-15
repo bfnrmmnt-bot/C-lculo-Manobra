@@ -16,8 +16,9 @@ const USERS_FILE = path.join(process.cwd(), "users.json");
 // Aux function to read/initialize users file
 function readUsers(): UserAccount[] {
   try {
+    let users: UserAccount[] = [];
     if (!fs.existsSync(USERS_FILE)) {
-      const defaultUsers: UserAccount[] = [
+      users = [
         {
           username: "admin",
           name: "Administrador",
@@ -26,11 +27,26 @@ function readUsers(): UserAccount[] {
           mustChangePassword: false
         }
       ];
-      fs.writeFileSync(USERS_FILE, JSON.stringify(defaultUsers, null, 2), "utf-8");
-      return defaultUsers;
+      fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
+    } else {
+      const data = fs.readFileSync(USERS_FILE, "utf-8");
+      users = JSON.parse(data);
     }
-    const data = fs.readFileSync(USERS_FILE, "utf-8");
-    return JSON.parse(data);
+
+    // Garante que o login solicitado pelo usuário esteja cadastrado
+    const requestedUsername = "09013091";
+    if (!users.some(u => u.username.toLowerCase() === requestedUsername)) {
+      users.push({
+        username: requestedUsername,
+        name: "Militar 09013091",
+        password: "19881995",
+        isAdmin: true, // Configurado como Administrador para liberação total de recursos
+        mustChangePassword: false
+      });
+      fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
+    }
+
+    return users;
   } catch (error) {
     console.error("Error reading users database:", error);
     return [
@@ -38,6 +54,13 @@ function readUsers(): UserAccount[] {
         username: "admin",
         name: "Administrador",
         password: "123",
+        isAdmin: true,
+        mustChangePassword: false
+      },
+      {
+        username: "09013091",
+        name: "Militar 09013091",
+        password: "19881995",
         isAdmin: true,
         mustChangePassword: false
       }
@@ -70,19 +93,32 @@ async function startServer() {
   // Login endpoint
   app.post("/api/auth/login", (req, res) => {
     const { username, password } = req.body;
+    console.log(`[AUTH] Login attempt - Username: "${username}", Password Length: ${password ? password.length : 0}`);
+    
     if (!username || !password) {
       res.status(400).json({ success: false, message: "Insira usuário e senha." });
       return;
     }
 
     const users = readUsers();
-    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    console.log(`[AUTH] Registered users in database:`, users.map(u => ({ username: u.username, isAdmin: u.isAdmin })));
 
-    if (!user || user.password !== password) {
+    const cleanInputUsername = username.trim().toLowerCase();
+    const user = users.find(u => u.username.toLowerCase() === cleanInputUsername);
+
+    if (!user) {
+      console.log(`[AUTH] Login failed: User "${cleanInputUsername}" not found.`);
       res.status(401).json({ success: false, message: "Usuário ou senha inválidos." });
       return;
     }
 
+    if (user.password !== password.trim()) {
+      console.log(`[AUTH] Login failed: Password mismatch for user "${cleanInputUsername}". Expected: "${user.password}", Got: "${password.trim()}"`);
+      res.status(401).json({ success: false, message: "Usuário ou senha inválidos." });
+      return;
+    }
+
+    console.log(`[AUTH] Login successful for user "${cleanInputUsername}"`);
     res.json({
       success: true,
       user: {
