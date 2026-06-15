@@ -43,7 +43,7 @@ export function getDatesInRange(startDate: Date, days: number): string[] {
  * Processes all missions, spreads them chronologically, applies the sliding 30-day limits,
  * and compiles stats and granular logs, including the 2% daily maneuver allowance based on rank.
  */
-export function calculatePay(missions: Mission[], defaultUserRankId: string = 'terceiro_sargento'): CalculationSummary {
+export function calculatePay(missions: Mission[], defaultUserRankId: string = 'terceiro_sargento', customRanks: Rank[] = RANKS): CalculationSummary {
   // Sort missions chronologically by start date
   const sortedMissions = [...missions].sort((a, b) => {
     return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
@@ -129,7 +129,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
 
   allCandidates.forEach((candidate) => {
     const candDateObj = parseDateOnly(candidate.dateString);
-    const rank = RANKS.find(r => r.id === candidate.rankId) || RANKS.find(r => r.id === 'terceiro_sargento')!;
+    const rank = customRanks.find(r => r.id === candidate.rankId) || customRanks.find(r => r.id === 'terceiro_sargento')!;
     const maneuverAllowance = rank.soldo * 0.02 * 0.725; // 2% base pay discounted by 27.5% Income Tax (IR)
     
     if (candidate.originalType === 'N1') {
@@ -196,7 +196,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
     const totalPay = foodPay + maneuverPay;
 
     const activeRankId = mission.rankId || defaultUserRankId;
-    const rankObj = RANKS.find(r => r.id === activeRankId) || RANKS.find(r => r.id === 'terceiro_sargento')!;
+    const rankObj = customRanks.find(r => r.id === activeRankId) || customRanks.find(r => r.id === 'terceiro_sargento')!;
 
     return {
       missionId: mission.id,
@@ -268,7 +268,8 @@ export function simulateProposedMission(
   currentMissions: Mission[],
   startDateStr: string,
   endDateStr: string,
-  defaultUserRankId: string = 'terceiro_sargento'
+  defaultUserRankId: string = 'terceiro_sargento',
+  customRanks: Rank[] = RANKS
 ): {
   durationHours: number;
   totalDays: number;
@@ -286,12 +287,12 @@ export function simulateProposedMission(
     rankId: defaultUserRankId,
   };
 
-  const simulatedSummary = calculatePay([...currentMissions, tempMission], defaultUserRankId);
+  const simulatedSummary = calculatePay([...currentMissions, tempMission], defaultUserRankId, customRanks);
   
   // Find the simulated payments for this temp mission
   const tempResult = simulatedSummary.missionCalculations.find((m) => m.missionId === 'temp-simulation');
   
-  const originalPaymentsBeforeSim = calculatePay(currentMissions, defaultUserRankId).allPayments;
+  const originalPaymentsBeforeSim = calculatePay(currentMissions, defaultUserRankId, customRanks).allPayments;
   const { remaining } = getActiveQuotaAtDate(originalPaymentsBeforeSim, formatDateString(new Date(startDateStr)));
 
   if (!tempResult) {

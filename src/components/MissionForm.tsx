@@ -8,9 +8,10 @@ interface MissionFormProps {
   onAddMission: (mission: Omit<Mission, 'id'>) => void;
   allPayments: DailyPayment[];
   selectedRankId: string;
+  ranks?: Rank[];
 }
 
-export default function MissionForm({ currentMissions, onAddMission, allPayments, selectedRankId }: MissionFormProps) {
+export default function MissionForm({ currentMissions, onAddMission, allPayments, selectedRankId, ranks = RANKS }: MissionFormProps) {
   // Navigation tabs: 'register' or 'simulate'
   const [activeTab, setActiveTab] = useState<'register' | 'simulate'>('register');
 
@@ -45,7 +46,7 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
       const sDateObj = new Date(simStartDate);
       const eDateObj = new Date(simEndDate);
       if (sDateObj.getTime() < eDateObj.getTime()) {
-        const result = simulateProposedMission(currentMissions, simStartDate, simEndDate, simRankId);
+        const result = simulateProposedMission(currentMissions, simStartDate, simEndDate, simRankId, ranks);
         setSimResult(result);
       } else {
         setSimResult(null);
@@ -53,7 +54,7 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
     } catch {
       setSimResult(null);
     }
-  }, [simStartDate, simEndDate, currentMissions, simRankId]);
+  }, [simStartDate, simEndDate, currentMissions, simRankId, ranks]);
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,10 +116,10 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
     }).format(value);
   };
 
-  const selectedRankObj = RANKS.find(r => r.id === rankId) || RANKS[3]; // Terceiro sargento default
+  const selectedRankObj = ranks.find(r => r.id === rankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0]; // Terceiro sargento default
   const dailyAdditionalValue = selectedRankObj.soldo * 0.02 * 0.725;
 
-  const simRankObj = RANKS.find(r => r.id === simRankId) || RANKS[3];
+  const simRankObj = ranks.find(r => r.id === simRankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0];
   const simDailyAdditionalValue = simRankObj.soldo * 0.02 * 0.725;
 
   return (
@@ -245,12 +246,12 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
                 <div className="flex flex-col p-2 bg-white rounded-lg border border-zinc-150">
                   <span className="text-zinc-500 font-sans">Menos de 8 horas</span>
                   <span className="font-bold text-zinc-950">Alimentação N1</span>
-                  <span className="text-emerald-700 font-bold">{formatBRL(RATES.N1)}</span>
+                  <span className="text-emerald-700 font-bold">{formatBRL(RATES.N1)}/dia</span>
                 </div>
                 <div className="flex flex-col p-2 bg-white rounded-lg border border-zinc-150">
                   <span className="text-zinc-500 font-sans">8h até 24 horas</span>
                   <span className="font-bold text-zinc-950">Alimentação N5</span>
-                  <span className="text-emerald-700 font-bold">{formatBRL(RATES.N5)}</span>
+                  <span className="text-emerald-700 font-bold">{formatBRL(RATES.N5)}/dia</span>
                 </div>
                 <div className="flex flex-col p-2 bg-white rounded-lg border border-zinc-150">
                   <span className="text-zinc-500 font-sans">Mais de 24 horas</span>
@@ -258,9 +259,6 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
                   <span className="text-emerald-700 font-bold">{formatBRL(RATES.N10)}/dia</span>
                 </div>
               </div>
-              <p className="text-[10px] text-zinc-400 font-sans leading-relaxed">
-                * Máximo de 10 cotas de alimentação acumuladas do grupo (N10/N5) a cada intervalo deslizante de 30 dias. Qualquer dia excedente é pago como N1 de R$ 13,50 gratuitamente para poupar a quota, mantendo a GRAT REP VI intacta por dia de missão!
-              </p>
             </div>
 
             <button
@@ -318,7 +316,7 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
                   className="w-full text-xs px-3 py-1.5 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-800/20 bg-white"
                   id="sim-rank"
                 >
-                  {RANKS.map((r) => (
+                  {ranks.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.name}
                     </option>
@@ -341,7 +339,7 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
                     <div className="flex gap-2 text-[10px] text-zinc-500 mt-1">
                       <span>Alimentação: <strong>{formatBRL(simResult.estimatedFoodTotal)}</strong></span>
                       <span>•</span>
-                      <span>GRAT REP VI com IR (-27,5%): <strong>{formatBRL(simResult.estimatedManeuverTotal)}</strong></span>
+                      <span>GRAT REP OP com IR (-27,5%): <strong>{formatBRL(simResult.estimatedManeuverTotal)}</strong></span>
                     </div>
                   </div>
 
@@ -391,7 +389,7 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
                           </div>
                           <div className="flex justify-between pl-2 text-[10px] text-zinc-500 italic">
                             <span>Alimentação: {formatBRL(p.rate)}</span>
-                            <span>GRAT REP VI (Líquido): {formatBRL(p.maneuverAllowance)}</span>
+                            <span>GRAT REP OP (Líquido): {formatBRL(p.maneuverAllowance)}</span>
                           </div>
                         </div>
                       );
@@ -405,7 +403,7 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
                   <div className="space-y-1">
                     <p className="font-semibold">Como funciona o cálculo deslizante?</p>
                     <p className="text-amber-905 text-amber-900 text-[11px] leading-relaxed">
-                      Este simulador assume que você registrará esta missão. Ele temporariamente calcula os 30 dias antecedentes de cada dia simulado. Caso as cotas de alimentação ultrapassem 10, o sistema degrada o pagamento daquele dia específico de N10 (R$ 135) para N1 (R$ 13,50) para respeitar o limite legal, mas a GRAT REP VI de {formatBRL(simDailyAdditionalValue)} (com 27,5% IR deduzido) mantém-se inalterada.
+                      Este simulador assume que você registrará esta missão. Ele temporariamente calcula os 30 dias antecedentes de cada dia simulado. Caso as cotas de alimentação ultrapassem 10, o sistema degrada o pagamento daquele dia específico de N10 (R$ 135) para N1 (R$ 13,50) para respeitar o limite legal, mas a GRAT REP OP de {formatBRL(simDailyAdditionalValue)} (com 27,5% IR deduzido) mantém-se inalterada.
                     </p>
                   </div>
                 </div>

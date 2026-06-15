@@ -5,13 +5,12 @@ export interface Rank {
 }
 
 export const RANKS: Rank[] = [
-  { id: 'suboficial', name: 'Suboficial', soldo: 6169.00 },
-  { id: 'primeiro_sargento', name: 'Primeiro-Sargento', soldo: 5483.00 },
-  { id: 'segundo_sargento', name: 'Segundo-Sargento', soldo: 4770.00 },
-  { id: 'terceiro_sargento', name: 'Terceiro-Sargento', soldo: 3825.00 },
-  { id: 'cabo', name: 'Cabo', soldo: 2625.00 },
-  { id: 'soldado', name: 'Soldado', soldo: 1765.00 },
-  { id: 'marinheiro', name: 'Marinheiro', soldo: 1765.00 }
+  { id: 'suboficial', name: 'Suboficial', soldo: 6737.00 },
+  { id: 'primeiro_sargento', name: 'Primeiro-Sargento', soldo: 5988.00 },
+  { id: 'segundo_sargento', name: 'Segundo-Sargento', soldo: 5209.00 },
+  { id: 'terceiro_sargento', name: 'Terceiro-Sargento', soldo: 4177.00 },
+  { id: 'cabo', name: 'Cabo', soldo: 2869.00 },
+  { id: 'marinheiro_soldado', name: 'Marinheiro / Soldado FN', soldo: 2103.00 }
 ];
 
 export interface Mission {

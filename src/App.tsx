@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mission, RANKS } from './types';
+import { Mission, RANKS, Rank } from './types';
 import { calculatePay } from './utils/calculator';
 import { DEFAULT_MISSIONS } from './data/defaultMissions';
 import StatsDashboard from './components/StatsDashboard';
@@ -12,7 +12,11 @@ const LOCAL_STORAGE_KEY = 'militar_diarias_missions';
 export default function App() {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [userRankId, setUserRankId] = useState<string>('terceiro_sargento');
+  const [ranks, setRanks] = useState<Rank[]>(RANKS);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const [isEditingSoldo, setIsEditingSoldo] = useState(false);
+  const [soldoInput, setSoldoInput] = useState('');
 
   // Load missions and user rank configuration from local storage on initial mount
   useEffect(() => {
@@ -28,7 +32,47 @@ export default function App() {
 
       const savedRank = localStorage.getItem('militar_diarias_user_rank');
       if (savedRank) {
-        setUserRankId(savedRank);
+        const isValidRank = RANKS.some(r => r.id === savedRank);
+        if (isValidRank) {
+          setUserRankId(savedRank);
+        } else {
+          setUserRankId('terceiro_sargento');
+          try {
+            localStorage.setItem('militar_diarias_user_rank', 'terceiro_sargento');
+          } catch (e) {
+            console.error('Failed to reset invalid user rank:', e);
+          }
+        }
+      } else {
+        setUserRankId('terceiro_sargento');
+      }
+
+      const savedRanks = localStorage.getItem('militar_diarias_custom_ranks');
+      if (savedRanks) {
+        try {
+          const parsed = JSON.parse(savedRanks);
+          if (Array.isArray(parsed)) {
+            // Merge custom values to prevent issues if default table expanded
+            const merged = RANKS.map(defaultRank => {
+              const custom = parsed.find(r => r.id === defaultRank.id);
+              if (!custom) return defaultRank;
+              
+              // Migração automática para soldos padrão antigos salvos em cache
+              let soldo = custom.soldo;
+              if (defaultRank.id === 'suboficial' && soldo === 6169.00) soldo = 6737.00;
+              if (defaultRank.id === 'primeiro_sargento' && soldo === 5483.00) soldo = 5988.00;
+              if (defaultRank.id === 'segundo_sargento' && soldo === 4770.00) soldo = 5209.00;
+              if (defaultRank.id === 'terceiro_sargento' && (soldo === 3825.00 || soldo === 3825)) soldo = 4177.00;
+              if (defaultRank.id === 'cabo' && (soldo === 2625.00 || soldo === 2625)) soldo = 2869.00;
+              if (defaultRank.id === 'marinheiro_soldado' && (soldo === 1765.00 || soldo === 1765)) soldo = 2103.00;
+              
+              return { ...defaultRank, soldo };
+            });
+            setRanks(merged);
+          }
+        } catch {
+          setRanks(RANKS);
+        }
       }
     } catch {
       // Fallback
@@ -82,7 +126,7 @@ export default function App() {
   };
 
   // Perform core pay calculations on current missions with selected user rank
-  const calculationSummary = calculatePay(missions, userRankId);
+  const calculationSummary = calculatePay(missions, userRankId, ranks);
 
   const formatBRL = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -91,8 +135,43 @@ export default function App() {
     }).format(value);
   };
 
-  const activeRankObj = RANKS.find(r => r.id === userRankId) || RANKS[3]; // defaulting to Terceiro Sargento
+  const activeRankObj = ranks.find(r => r.id === userRankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0]; // defaulting to Terceiro Sargento
   const dailyAdditionalCampaignValue = activeRankObj.soldo * 0.02 * 0.725;
+
+  const handleStartEditSoldo = () => {
+    setSoldoInput(activeRankObj.soldo.toString());
+    setIsEditingSoldo(true);
+  };
+
+  const handleSaveSoldo = () => {
+    const val = parseFloat(soldoInput);
+    if (isNaN(val) || val < 0) {
+      alert('Por favor, insira um valor numérico válido para o soldo.');
+      return;
+    }
+    const updatedRanks = ranks.map((r) => 
+      r.id === userRankId ? { ...r, soldo: val } : r
+    );
+    setRanks(updatedRanks);
+    setIsEditingSoldo(false);
+    try {
+      localStorage.setItem('militar_diarias_custom_ranks', JSON.stringify(updatedRanks));
+    } catch (err) {
+      console.error('Failed to save custom ranks:', err);
+    }
+  };
+
+  const handleResetSoldos = () => {
+    if (confirm('Deseja redefinir os soldos de todas as graduações para os valores originais da tabela padrão?')) {
+      setRanks(RANKS);
+      setIsEditingSoldo(false);
+      try {
+        localStorage.removeItem('militar_diarias_custom_ranks');
+      } catch (err) {
+        console.error('Failed to clear custom ranks:', err);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-50/70 text-zinc-900 selection:bg-emerald-800 selection:text-white pb-12" id="app-root-container">
@@ -123,7 +202,7 @@ export default function App() {
             <span className="text-emerald-800">|</span>
             <div className="flex items-center gap-1.5 text-amber-300 font-semibold font-sans">
               <span className="w-2.5 h-2.5 rounded bg-amber-400 border border-amber-500 block animate-pulse" />
-              <span>GRAT REP VI (2% com desc. de 27,5% IR): <strong className="font-mono text-white">{formatBRL(dailyAdditionalCampaignValue)}/dia</strong></span>
+              <span>GRAT REP OP (2% com desc. de 27,5% IR): <strong className="font-mono text-white">{formatBRL(dailyAdditionalCampaignValue)}/dia</strong></span>
             </div>
           </div>
         </div>
@@ -144,10 +223,13 @@ export default function App() {
                   <select
                     id="badge-rank-select"
                     value={userRankId}
-                    onChange={(e) => handleRankChange(e.target.value)}
+                    onChange={(e) => {
+                      handleRankChange(e.target.value);
+                      setIsEditingSoldo(false);
+                    }}
                     className="text-xs px-2.5 py-1 pr-6 font-bold text-emerald-950 bg-emerald-100/60 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer outline-none transition-colors appearance-none"
                   >
-                    {RANKS.map((r) => (
+                    {ranks.map((r) => (
                       <option key={r.id} value={r.id}>
                         {r.name}
                       </option>
@@ -160,23 +242,67 @@ export default function App() {
                   </span>
                 </span>
               </h2>
-              <p className="text-xs text-zinc-500 mt-1">
-                Soldo: <strong className="font-mono text-zinc-700">{formatBRL(activeRankObj.soldo)}</strong>
-              </p>
+              
+              {isEditingSoldo ? (
+                <div className="flex flex-wrap items-center gap-2 mt-1.5 bg-zinc-50 p-2 rounded-xl border border-zinc-150 max-w-sm">
+                  <div className="flex items-center gap-1 font-sans">
+                    <span className="text-xs text-zinc-500 font-medium">R$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={soldoInput}
+                      onChange={(e) => setSoldoInput(e.target.value)}
+                      className="w-24 text-xs font-mono font-semibold px-2 py-1 border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-800 bg-white text-zinc-800"
+                      placeholder="Valor do soldo"
+                      id="edit-soldo-input"
+                    />
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={handleSaveSoldo}
+                      className="text-[10px] font-bold bg-emerald-850 text-white px-2.5 py-1 rounded-lg hover:bg-emerald-800 transition-colors shadow-xs"
+                    >
+                      Salvar
+                    </button>
+                    <button
+                      onClick={() => setIsEditingSoldo(false)}
+                      className="text-[10px] font-bold bg-zinc-200 text-zinc-700 px-2.5 py-1 rounded-lg hover:bg-zinc-300 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-xs text-zinc-500 mt-1 flex flex-wrap items-center gap-2">
+                  <p>
+                    Soldo: <strong className="font-mono text-zinc-700">{formatBRL(activeRankObj.soldo)}</strong>
+                  </p>
+                  <span className="text-zinc-300">|</span>
+                  <button
+                    onClick={handleStartEditSoldo}
+                    className="text-emerald-800 hover:text-emerald-950 font-bold text-xs underline decoration-dotted underline-offset-2 transition-colors cursor-pointer"
+                  >
+                    Editar Soldo
+                  </button>
+                  {ranks.some((r, i) => r.soldo !== RANKS[i]?.soldo) && (
+                    <>
+                      <span className="text-zinc-300">|</span>
+                      <button
+                        onClick={handleResetSoldos}
+                        className="text-amber-800 hover:text-amber-950 text-xs font-semibold hover:underline cursor-pointer"
+                      >
+                        Restaurar Padrão
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Core Quick Help Notice (Now positioned BELOW the military profile) */}
-        <div className="bg-amber-50 text-amber-950 p-4 rounded-3xl border border-amber-200/50 text-xs flex gap-3 shadow-xs" id="critical-rule-banner">
-          <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <span className="font-bold block text-amber-900 text-[13px]">Entenda a Regra de 30 Dias Deslizantes para Alimentação de Missão</span>
-            <p className="text-amber-950 leading-relaxed text-[11.5px]">
-              Segundo a regulamentação militar, o militar pode receber no máximo <strong>10 cotas completas (N10) ou parciais (N5) combinadas de alimentação</strong> a cada 30 dias contados retroativamente a partir de cada escala. Se você realizar uma única missão de 15 dias, você receberá 10 pagamentos N10 inteiros e as 5 cotas excedentes sofrerão degradação para o valor básico N1 de R$ 13,50, poupando a sua quota. Nota: Estas cotas cobrem as despesas de alimentação decorrentes da escala, sem se confundir com diárias administrativas de viagem.
-            </p>
-          </div>
-        </div>
+
 
         {/* Dynamic Financial Counter & Statistics Dashboard */}
         {isInitialized && (
@@ -193,6 +319,7 @@ export default function App() {
                 onAddMission={handleAddMission}
                 allPayments={calculationSummary.allPayments}
                 selectedRankId={userRankId}
+                ranks={ranks}
               />
             </div>
           </div>
