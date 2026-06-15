@@ -211,9 +211,9 @@ export default function App() {
               <User className="w-6 h-6 text-emerald-800" />
             </div>
             <div>
-              <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Perfil de Simulação</span>
+              <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Perfil</span>
               <h2 className="text-base font-bold text-zinc-900 flex flex-wrap items-center gap-2 font-sans leading-snug">
-                Graduação de Diária: <span className="relative inline-flex items-center">
+                Graduação: <span className="relative inline-flex items-center">
                   <select
                     id="badge-rank-select"
                     value={userRankId}
