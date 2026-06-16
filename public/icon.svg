@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Background circle with emerald theme -->
+  <rect width="512" height="512" rx="128" fill="#022c22"/>
+  <!-- Decorative inner circle border -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#fbbf24" stroke-width="4" stroke-dasharray="8,8"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#059669" stroke-width="2"/>
+  
+  <!-- Ribbon or Chevron Background -->
+  <path d="M150 120 L256 180 L362 120 L362 280 L256 360 L150 280 Z" fill="#047857" opacity="0.3"/>
+  
+  <!-- Outer Shield line -->
+  <path d="M256 90 
+           C330 90, 390 120, 390 240 
+           C390 350, 290 400, 256 422 
+           C222 400, 122 350, 122 240 
+           C122 120, 182 90, 256 90 Z" 
+        fill="none" stroke="#fbbf24" stroke-width="12" stroke-linejoin="round"/>
+        
+  <!-- Inner Shield fill -->
+  <path d="M256 104 
+           C320 104, 374 130, 374 240 
+           C374 336, 286 384, 256 404 
+           C226 384, 138 336, 138 240 
+           C138 130, 192 104, 256 104 Z" 
+        fill="#022c22"/>
+        
+  <!-- Chevrons (Sargento stripes for military vibe) -->
+  <path d="M190 170 L256 210 L322 170" fill="none" stroke="#fbbf24" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M190 195 L256 235 L322 195" fill="none" stroke="#fbbf24" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M190 220 L256 260 L322 220" fill="none" stroke="#fbbf24" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Banknote / Diarias icon centered inside the shield -->
+  <g transform="translate(186, 260)">
+    <!-- Banknote outline -->
+    <rect x="0" y="0" width="140" height="85" rx="8" fill="#047857" stroke="#fbbf24" stroke-width="6"/>
+    <!-- Banknote inner details -->
+    <rect x="10" y="10" width="120" height="65" rx="4" fill="none" stroke="#34d399" stroke-width="3"/>
+    <!-- Center circle medallion -->
+    <circle cx="70" cy="42.5" r="22" fill="#022c22" stroke="#fbbf24" stroke-width="3"/>
+    <!-- Dollar / Currency emblem -->
+    <text x="70" y="52" font-family="system-ui, -apple-system, sans-serif" font-weight="bold" font-size="30" fill="#fbbf24" text-anchor="middle" dominant-baseline="central">$</text>
+    <!-- Corner stars -->
+    <circle cx="20" cy="20" r="3" fill="#fbbf24"/>
+    <circle cx="120" cy="20" r="3" fill="#fbbf24"/>
+    <circle cx="20" cy="65" r="3" fill="#fbbf24"/>
+    <circle cx="120" cy="65" r="3" fill="#fbbf24"/>
+  </g>
+</svg>
