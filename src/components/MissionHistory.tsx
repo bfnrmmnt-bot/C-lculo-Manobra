@@ -493,12 +493,12 @@ export default function MissionHistory({
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-end gap-2 shrink-0">
                         {/* Received Status Button */}
                         <button
                           type="button"
                           onClick={() => onToggleReceived(calc.missionId)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs ${
+                          className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold tracking-wide transition-all flex items-center justify-center gap-1.5 cursor-pointer border shadow-sm select-none shrink-0 ${
                             calc.received
                               ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-650'
                               : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-650'
@@ -506,41 +506,43 @@ export default function MissionHistory({
                           title={calc.received ? "Marcado como Recebido" : "Marcado como Pendente"}
                           id={`received-btn-${calc.missionId}`}
                         >
-                          {calc.received ? <Check className="w-3.5 h-3.5 shrink-0" /> : <X className="w-3.5 h-3.5 shrink-0" />}
+                          {calc.received ? <Check className="w-3 h-3 shrink-0" /> : <X className="w-3 h-3 shrink-0" />}
                           RECEBIDO
                         </button>
 
-                        {/* Toggle Detail Expansion */}
-                        <button
-                          type="button"
-                          onClick={() => setExpandedMissionId(isExpanded ? null : calc.missionId)}
-                          className="p-1.5 text-zinc-400 hover:text-emerald-800 hover:bg-zinc-50 rounded-lg border border-zinc-200 transition-all cursor-pointer"
-                          title="Ver detalhamento dia a dia"
-                          id={`expand-btn-${calc.missionId}`}
-                        >
-                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {/* Toggle Detail Expansion */}
+                          <button
+                            type="button"
+                            onClick={() => setExpandedMissionId(isExpanded ? null : calc.missionId)}
+                            className="p-1.5 text-zinc-400 hover:text-emerald-800 hover:bg-zinc-50 rounded-lg border border-zinc-200 transition-all cursor-pointer"
+                            title="Ver detalhamento dia a dia"
+                            id={`expand-btn-${calc.missionId}`}
+                          >
+                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
 
-                        {/* Edit Button */}
-                        <button
-                          type="button"
-                          onClick={() => onEditMission(calc.missionId)}
-                          className="p-1.5 text-blue-600 hover:text-blue-900 border border-zinc-200 hover:border-blue-150 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
-                          title="Editar missão"
-                          id={`edit-btn-${calc.missionId}`}
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
+                          {/* Edit Button */}
+                          <button
+                            type="button"
+                            onClick={() => onEditMission(calc.missionId)}
+                            className="p-1.5 text-blue-600 hover:text-blue-900 border border-zinc-200 hover:border-blue-150 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                            title="Editar missão"
+                            id={`edit-btn-${calc.missionId}`}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
 
-                        <button
-                          type="button"
-                          onClick={() => onDeleteMission(calc.missionId)}
-                          className="p-1.5 text-rose-450 hover:text-rose-900 border border-zinc-200 hover:border-rose-150 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
-                          title="Excluir do histórico"
-                          id={`delete-btn-${calc.missionId}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => onDeleteMission(calc.missionId)}
+                            className="p-1.5 text-rose-450 hover:text-rose-900 border border-zinc-200 hover:border-rose-150 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
+                            title="Excluir do histórico"
+                            id={`delete-btn-${calc.missionId}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
