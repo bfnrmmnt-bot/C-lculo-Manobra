@@ -62,11 +62,11 @@ export default function MissionHistory({
     return payments.some((p) => p.originalType !== p.assignedType);
   };
 
-  // State to filter out blank rest days if the user prefers
-  const [showAll30Days, setShowAll30Days] = useState<boolean>(true);
+  // State to track selected day in the calendar
+  const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
 
-  // Calculate the sliding window occupation timeline for the last 30 consecutive days!
-  const getQuotaUtilizationData = () => {
+  // Calculate the sliding window occupation timeline for the last 30 consecutive days (chronological oldest to newest)
+  const full30DaysChronological = (() => {
     // Determine the anchor date. We prioritize June 2nd, 2026, or the maximum date of missions registered
     let anchorDate = new Date(2026, 5, 2); // June 2, 2526 (0-indexed month)
     
@@ -100,7 +100,7 @@ export default function MissionHistory({
         primaryType,
         missionTitles: paymentsOnThisDay.length > 0
           ? Array.from(new Set(paymentsOnThisDay.map((p) => p.missionTitle))).join(', ')
-          : 'Instalação / Sem Escala de Missão',
+          : 'Sem escala de missão',
         hasMissions: paymentsOnThisDay.length > 0
       });
 
@@ -108,15 +108,51 @@ export default function MissionHistory({
       tempDate.setDate(tempDate.getDate() - 1);
     }
 
-    // Keep from newest to oldest so that the layout starts with the final/most recent day at the top, as requested
-    if (showAll30Days) {
-      return result;
+    // Return reversed to be in chronological order (oldest to newest)
+    return result.reverse();
+  })();
+
+  // Resolve active selected date (default to latest day if none is clicked)
+  const activeSelectedDateStr = selectedDateStr || (full30DaysChronological.length > 0 ? full30DaysChronological[full30DaysChronological.length - 1].dateStr : null);
+  const selectedDayDetail = full30DaysChronological.find(item => item.dateStr === activeSelectedDateStr);
+
+  const getCalendarHeaderSpan = () => {
+    if (full30DaysChronological.length === 0) return 'Últimos 30 Dias';
+    
+    const formatMonthYear = (dateStr: string) => {
+      const date = new Date(dateStr + 'T12:00:00');
+      const month = date.toLocaleDateString('pt-BR', { month: 'long' });
+      const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+      const year = date.getFullYear();
+      return { month: capitalizedMonth, year };
+    };
+
+    const first = formatMonthYear(full30DaysChronological[0].dateStr);
+    const last = formatMonthYear(full30DaysChronological[full30DaysChronological.length - 1].dateStr);
+
+    if (first.month === last.month && first.year === last.year) {
+      return `${first.month} de ${first.year}`;
+    } else if (first.year === last.year) {
+      return `${first.month} / ${last.month} de ${first.year}`;
     } else {
-      return result.filter(item => item.hasMissions);
+      return `${first.month} de ${first.year} – ${last.month} de ${last.year}`;
     }
   };
 
-  const quotaTimeline = getQuotaUtilizationData();
+  const getReadableDayName = (dateStr: string) => {
+    const date = new Date(dateStr + 'T12:00:00');
+    const dayName = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+    const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    const dayAndMonth = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+    return `${capitalizedDay}, ${dayAndMonth}`;
+  };
+
+  const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  
+  // Padding slots at the start of the calendar grid
+  const startPadding = full30DaysChronological.length > 0 
+    ? new Date(full30DaysChronological[0].dateStr + 'T12:00:00').getDay() 
+    : 0;
 
   return (
     <div className="space-y-6" id="history-container">
@@ -129,97 +165,211 @@ export default function MissionHistory({
               Relatório Geral dos Últimos 30 Dias
             </h3>
             <p className="text-xs text-zinc-500 mt-0.5">
-              Histórico cronológico detalhado no ciclo deslizante de 1 mês completo a partir do dia de visualização.
+              Calendário detalhado de alimentação no ciclo deslizante de 1 mês completo. Clique em um dia para ver o demonstrativo.
             </p>
           </div>
           
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowAll30Days(!showAll30Days)}
-              className="text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold px-2.5 py-1 rounded-lg border border-zinc-200 cursor-pointer"
-            >
-              {showAll30Days ? 'Filtrar Folgas' : 'Exibir Todos 30 Dias'}
-            </button>
-            <div className="flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-950 font-semibold px-2.5 py-1 rounded-full border border-emerald-100">
+            <span className="text-xs font-bold text-emerald-950 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Limite: 10 cotas N10/N5</span>
+              {getCalendarHeaderSpan()}
+            </span>
+          </div>
+        </div>
+
+        {/* Calendar Grid Container */}
+        <div className="mt-4 border border-zinc-150 rounded-2xl p-4 bg-zinc-50/50">
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">
+            {weekdays.map((w, index) => (
+              <div key={index} className="py-1">
+                {w}
+              </div>
+            ))}
+          </div>
+
+          {/* Day blocks grid */}
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+            {/* Empty padding slots */}
+            {Array.from({ length: startPadding }).map((_, index) => (
+              <div key={`pad-${index}`} className="aspect-square bg-transparent rounded-xl" />
+            ))}
+
+            {/* Actual 30 days */}
+            {full30DaysChronological.map((item) => {
+              const dayNum = item.dateStr.split('-')[2];
+              const isSelected = item.dateStr === activeSelectedDateStr;
+              
+              // Resolve styles based on food allowance type
+              let colorClasses = '';
+              if (item.primaryType === 'N10') {
+                // N10 is Greenish / Esverdeado
+                colorClasses = 'bg-emerald-100/90 text-emerald-900 border-emerald-300 hover:bg-emerald-200';
+              } else if (item.primaryType === 'N5') {
+                // N5 is Bluish / Azulado
+                colorClasses = 'bg-sky-100/90 text-sky-900 border-sky-300 hover:bg-sky-200';
+              } else if (item.primaryType === 'N1') {
+                // N1 is Reddish / Avermelhado (degraded alert state)
+                colorClasses = 'bg-rose-100/95 text-rose-900 border-rose-300 hover:bg-rose-250 font-bold';
+              } else {
+                // Folga / No Mission is neutral gray
+                colorClasses = 'bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50';
+              }
+
+              return (
+                <button
+                  key={item.dateStr}
+                  type="button"
+                  onClick={() => setSelectedDateStr(item.dateStr)}
+                  className={`aspect-square border rounded-xl flex flex-col items-center justify-center relative text-xs sm:text-sm font-semibold transition-all duration-200 select-none ${colorClasses} ${
+                    isSelected 
+                      ? 'ring-2 ring-amber-400 ring-offset-1 scale-105 z-10 shadow-sm' 
+                      : ''
+                  }`}
+                  title={`${item.formattedDate} - ${item.primaryType} (${item.missionTitles})`}
+                  id={`calendar-day-${item.dateStr}`}
+                >
+                  <span className="leading-none">{parseInt(dayNum, 10)}</span>
+                  {item.hasMissions && (
+                    <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${
+                      item.primaryType === 'N10' 
+                        ? 'bg-emerald-600' 
+                        : item.primaryType === 'N5' 
+                        ? 'bg-sky-600' 
+                        : 'bg-rose-600'
+                    }`} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Legend section */}
+          <div className="mt-5 pt-4 border-t border-zinc-200/60 flex flex-wrap justify-center items-center gap-x-5 gap-y-2 text-[11px] text-zinc-650">
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-300 block" />
+              <span className="text-zinc-600 font-medium">N10 (Esverdeado - Cota Cheia)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-sky-100 border border-sky-300 block" />
+              <span className="text-zinc-600 font-medium">N5 (Azulado - Meia Cota)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-rose-100 border border-rose-300 block" />
+              <span className="text-zinc-600 font-medium">N1 (Avermelhado - Degradada)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-white border border-zinc-200 block" />
+              <span className="text-zinc-450 text-zinc-400">Folga / Sem Escala</span>
             </div>
           </div>
         </div>
 
-        {/* Graphical representation rows */}
-        <div className="space-y-3 pt-2 max-h-[380px] overflow-y-auto pr-1" id="quota-usage-bars-list">
-          {quotaTimeline.length > 0 ? (
-            quotaTimeline.map((item, idx) => {
-              const uPercent = (item.activeCount / 10) * 100;
-              const isFull = item.activeCount >= 10;
+        {/* Selected Day details popover / expansion */}
+        {selectedDayDetail && (
+          <div className="mt-4 p-4 bg-zinc-50 border border-zinc-200 rounded-2xl animate-fade-in" id="calendar-day-detail">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-zinc-200/60 pb-3 mb-3">
+              <div>
+                <h4 className="font-bold text-zinc-900 text-sm">
+                  {getReadableDayName(selectedDayDetail.dateStr)}
+                </h4>
+                <span className="text-[10px] text-zinc-400 font-mono">
+                  Data de Processamento: {selectedDayDetail.formattedDate}
+                </span>
+              </div>
               
-              return (
-                <div key={idx} className={`flex flex-col sm:flex-row sm:items-center gap-2 text-xs p-2 rounded-xl transition-all ${
-                  item.hasMissions ? 'bg-zinc-50 border border-zinc-150' : 'opacity-70'
+              <div>
+                <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${
+                  selectedDayDetail.primaryType === 'N10'
+                    ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
+                    : selectedDayDetail.primaryType === 'N5'
+                    ? 'bg-sky-100 text-sky-900 border-sky-200'
+                    : selectedDayDetail.primaryType === 'N1'
+                    ? 'bg-rose-100 text-rose-900 border-rose-200'
+                    : 'bg-zinc-100 text-zinc-500 border-zinc-200/40'
                 }`}>
-                  <div className="w-[85px] font-semibold text-zinc-800 shrink-0 flex items-center gap-1.5">
-                    <span className={`font-mono px-2 py-0.5 rounded text-[11px] block text-center w-full ${
-                      item.hasMissions ? 'bg-emerald-950 text-white' : 'bg-zinc-100 text-zinc-600'
-                    }`}>
-                      {item.formattedDate}
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    selectedDayDetail.primaryType === 'N10'
+                      ? 'bg-emerald-500'
+                      : selectedDayDetail.primaryType === 'N5'
+                      ? 'bg-sky-500'
+                      : selectedDayDetail.primaryType === 'N1'
+                      ? 'bg-rose-500 animate-ping'
+                      : 'bg-zinc-400'
+                  }`} />
+                  {selectedDayDetail.primaryType === 'N10'
+                    ? 'N10 – Cota Alimentação Cheia'
+                    : selectedDayDetail.primaryType === 'N5'
+                    ? 'N5 – Meia Cota Alimentação'
+                    : selectedDayDetail.primaryType === 'N1'
+                    ? 'N1 – Alimentação Degradada'
+                    : 'Folga / Sem Escala'}
+                </span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="space-y-2">
+                <div>
+                  <span className="text-[9.5px] text-zinc-400 font-bold uppercase tracking-wider block">Missão Ativa</span>
+                  <span className="text-zinc-800 font-semibold block mt-0.5">
+                    {selectedDayDetail.missionTitles}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[9.5px] text-zinc-400 font-bold uppercase tracking-wider block">Valor de Alimentação Creditado</span>
+                  <span className="text-emerald-900 font-bold font-mono text-sm block mt-0.5">
+                    {selectedDayDetail.primaryType === 'N10'
+                      ? formatBRL(135)
+                      : selectedDayDetail.primaryType === 'N5'
+                      ? formatBRL(67.5)
+                      : selectedDayDetail.primaryType === 'N1'
+                      ? formatBRL(13.5)
+                      : formatBRL(0)}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="space-y-2 border-t md:border-t-0 md:border-l border-zinc-200/60 pt-3 md:pt-0 md:pl-4">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[9.5px] text-zinc-400 font-bold uppercase tracking-wider block">Ocupação de Limite (Últimos 30 Dias)</span>
+                    <span className="font-mono font-bold text-zinc-700">
+                      {selectedDayDetail.activeCount} / 10 cotas
                     </span>
                   </div>
-
-                  <div className="flex-1 space-y-1">
-                    <div className="flex justify-between items-center text-[11px] text-zinc-500">
-                      <span className="truncate max-w-[200px] sm:max-w-xs">{item.missionTitles}</span>
-                      <span className="font-semibold text-zinc-700 font-mono">
-                        {item.activeCount}/10 cotas usadas
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-zinc-200/60 h-2 rounded-full overflow-hidden flex">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          isFull 
-                             ? 'bg-rose-500' 
-                            : item.activeCount >= 8 
-                            ? 'bg-amber-400' 
-                            : 'bg-emerald-700'
-                        }`}
-                        style={{ width: `${Math.min(100, uPercent)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="w-[70px] text-right shrink-0">
-                    <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                      item.primaryType === 'N10' 
-                        ? 'bg-emerald-100 text-emerald-850 animate-fade' 
-                        : item.primaryType === 'N5' 
-                        ? 'bg-sky-100 text-sky-850' 
-                        : item.primaryType === 'N1'
-                        ? 'bg-amber-100 text-amber-850'
-                        : 'bg-zinc-100 text-zinc-400 font-normal italic'
-                    }`}>
-                      {item.primaryType}
-                    </span>
+                  <div className="w-full bg-zinc-200/60 h-2 rounded-full overflow-hidden flex">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        selectedDayDetail.activeCount >= 10
+                          ? 'bg-rose-500'
+                          : selectedDayDetail.activeCount >= 8
+                          ? 'bg-amber-400'
+                          : 'bg-emerald-600'
+                      }`}
+                      style={{ width: `${(selectedDayDetail.activeCount / 10) * 100}%` }}
+                    />
                   </div>
                 </div>
-              );
-            })
-          ) : (
-            <div className="text-center py-6 text-zinc-400 text-xs">
-              Nenhuma escala cadastrada neste ciclo de 30 dias.
+                
+                <p className="text-[10px] text-zinc-500 leading-relaxed pt-1">
+                  {selectedDayDetail.activeCount >= 10
+                    ? 'Limite de 10 cotas cheias atingido neste ciclo deslizante. Para proteger a quota, o valor deste dia foi degradado para o valor residual de N1 (R$ 13,50).'
+                    : `Você utilizou ${selectedDayDetail.activeCount} de 10 cotas cheias admissíveis. Há ${selectedDayDetail.remaining} cotas cheias restantes disponíveis para as próximas missões.`}
+                </p>
+              </div>
             </div>
-          )}
-        </div>
-        
+          </div>
+        )}
+
         <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center gap-2 text-[10.5px] text-zinc-450 text-zinc-500">
-          <AlertCircle className="w-3.5 h-3.5 text-emerald-850 shrink-0" />
+          <AlertCircle className="w-3.5 h-3.5 text-emerald-800 shrink-0" />
           <span>
-            Este relatório mostra todos os 30 dias retrospectivos a partir de hoje (02 de junho de 2026). Os dias com missões ativas aparecem destacados com suas respectivas cotas ou folgas.
+            Este calendário apresenta a ocupação retrospectiva de 30 dias contínuos. Clique nos dias para verificar o saldo de cotas acumuladas.
           </span>
         </div>
       </div>
+
 
       {/* Database control buttons & Log Header */}
       <div className="bg-white border border-zinc-200 rounded-3xl p-6 shadow-xs" id="missions-history-log">
