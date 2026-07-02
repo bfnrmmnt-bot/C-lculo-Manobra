@@ -130,6 +130,13 @@ export default function App() {
     setEditingMission(null);
   };
 
+  const handleToggleReceived = (id: string) => {
+    const updatedMissions = missions.map(m => 
+      m.id === id ? { ...m, received: !m.received } : m
+    );
+    saveMissions(updatedMissions);
+  };
+
   const handleImportBackup = (data: any) => {
     if (!data) {
       alert('Arquivo de backup inválido.');
@@ -437,6 +444,7 @@ export default function App() {
               onEditMission={handleEditMission}
               onImportBackup={handleImportBackup}
               onExportBackup={handleExportBackup}
+              onToggleReceived={handleToggleReceived}
             />
           </div>
         </div>

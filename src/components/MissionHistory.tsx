@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Mission, DailyPayment, CalculationSummary } from '../types';
 import { getActiveQuotaAtDate, formatDateString } from '../utils/calculator';
-import { Trash2, AlertTriangle, MapPin, Calendar, Clock, RotateCcw, AlertCircle, Sparkles, ChevronDown, ChevronUp, BarChart4, Pencil, Download } from 'lucide-react';
+import { Trash2, AlertTriangle, MapPin, Calendar, Clock, RotateCcw, AlertCircle, Sparkles, ChevronDown, ChevronUp, BarChart4, Pencil, Download, Check, X } from 'lucide-react';
 
 interface MissionHistoryProps {
   summary: CalculationSummary;
@@ -11,6 +11,7 @@ interface MissionHistoryProps {
   onEditMission: (id: string) => void;
   onImportBackup: (data: any) => void;
   onExportBackup: () => void;
+  onToggleReceived: (id: string) => void;
 }
 
 export default function MissionHistory({ 
@@ -20,7 +21,8 @@ export default function MissionHistory({
   onLoadDefaults,
   onEditMission,
   onImportBackup,
-  onExportBackup
+  onExportBackup,
+  onToggleReceived
 }: MissionHistoryProps) {
   const { missionCalculations, allPayments } = summary;
   const [expandedMissionId, setExpandedMissionId] = useState<string | null>(null);
@@ -492,6 +494,22 @@ export default function MissionHistory({
                       </div>
 
                       <div className="flex items-center gap-2">
+                        {/* Received Status Button */}
+                        <button
+                          type="button"
+                          onClick={() => onToggleReceived(calc.missionId)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border shadow-xs ${
+                            calc.received
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-650'
+                              : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-650'
+                          }`}
+                          title={calc.received ? "Marcado como Recebido" : "Marcado como Pendente"}
+                          id={`received-btn-${calc.missionId}`}
+                        >
+                          {calc.received ? <Check className="w-3.5 h-3.5 shrink-0" /> : <X className="w-3.5 h-3.5 shrink-0" />}
+                          RECEBIDO
+                        </button>
+
                         {/* Toggle Detail Expansion */}
                         <button
                           type="button"

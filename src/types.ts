@@ -21,6 +21,7 @@ export interface Mission {
   description?: string;
   location?: string;
   rankId?: string; // Associated rank for this specific mission
+  received?: boolean;
 }
 
 export type PayType = 'N10' | 'N5' | 'N1';
@@ -53,6 +54,7 @@ export interface MissionCalculation {
   rankId?: string;
   rankName?: string;
   soldoValue?: number;
+  received?: boolean;
 }
 
 export interface CalculationSummary {

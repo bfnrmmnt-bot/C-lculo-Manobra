@@ -214,6 +214,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
       rankId: activeRankId,
       rankName: rankObj.name,
       soldoValue: rankObj.soldo,
+      received: mission.received,
     };
   });
 
