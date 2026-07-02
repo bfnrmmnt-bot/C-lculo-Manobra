@@ -248,19 +248,15 @@ export default function MissionHistory({
           <div className="mt-5 pt-4 border-t border-zinc-200/60 flex flex-wrap justify-center items-center gap-x-5 gap-y-2 text-[11px] text-zinc-650">
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-300 block" />
-              <span className="text-zinc-600 font-medium">N10 (Esverdeado - Cota Cheia)</span>
+              <span className="text-zinc-600 font-medium">N10</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded bg-sky-100 border border-sky-300 block" />
-              <span className="text-zinc-600 font-medium">N5 (Azulado - Meia Cota)</span>
+              <span className="text-zinc-600 font-medium">N5</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded bg-rose-100 border border-rose-300 block" />
-              <span className="text-zinc-600 font-medium">N1 (Avermelhado - Degradada)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-white border border-zinc-200 block" />
-              <span className="text-zinc-450 text-zinc-400">Folga / Sem Escala</span>
+              <span className="text-zinc-600 font-medium">N1</span>
             </div>
           </div>
         </div>
