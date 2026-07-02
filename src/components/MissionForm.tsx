@@ -6,12 +6,24 @@ import { PlusCircle, Search, HelpCircle, AlertCircle, Info, CalendarClock, Dolla
 interface MissionFormProps {
   currentMissions: Mission[];
   onAddMission: (mission: Omit<Mission, 'id'>) => void;
+  onUpdateMission?: (mission: Mission) => void;
+  editingMission?: Mission | null;
+  onCancelEdit?: () => void;
   allPayments: DailyPayment[];
   selectedRankId: string;
   ranks?: Rank[];
 }
 
-export default function MissionForm({ currentMissions, onAddMission, allPayments, selectedRankId, ranks = RANKS }: MissionFormProps) {
+export default function MissionForm({ 
+  currentMissions, 
+  onAddMission, 
+  onUpdateMission,
+  editingMission,
+  onCancelEdit,
+  allPayments, 
+  selectedRankId, 
+  ranks = RANKS 
+}: MissionFormProps) {
   // Navigation tabs: 'register' or 'simulate'
   const [activeTab, setActiveTab] = useState<'register' | 'simulate'>('register');
 
@@ -39,6 +51,25 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
       setSimRankId(selectedRankId);
     }
   }, [selectedRankId]);
+
+  // Sync state with editingMission prop
+  useEffect(() => {
+    if (editingMission) {
+      setTitle(editingMission.title);
+      setDescription(editingMission.description || '');
+      setLocation(editingMission.location || '');
+      setStartDate(editingMission.startDate);
+      setEndDate(editingMission.endDate);
+      setRankId(editingMission.rankId);
+      setActiveTab('register');
+    } else {
+      setTitle('');
+      setDescription('');
+      setLocation('');
+      setStartDate('2026-06-01T08:00');
+      setEndDate('2026-06-02T12:00');
+    }
+  }, [editingMission]);
 
   // Re-run simulation whenever simulation inputs or background missions change
   useEffect(() => {
@@ -78,15 +109,27 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
       return;
     }
 
-    // Call callback to persist mission with the selected rankId
-    onAddMission({
-      title: title.trim(),
-      description: description.trim(),
-      location: location.trim(),
-      startDate,
-      endDate,
-      rankId,
-    });
+    if (editingMission && onUpdateMission) {
+      onUpdateMission({
+        ...editingMission,
+        title: title.trim(),
+        description: description.trim(),
+        location: location.trim(),
+        startDate,
+        endDate,
+        rankId,
+      });
+    } else {
+      // Call callback to persist mission with the selected rankId
+      onAddMission({
+        title: title.trim(),
+        description: description.trim(),
+        location: location.trim(),
+        startDate,
+        endDate,
+        rankId,
+      });
+    }
 
     // Reset fields
     setTitle('');
@@ -137,7 +180,7 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
           id="tab-register-btn"
         >
           <ListPlus className="w-4 h-4" />
-          Registrar Nova Missão
+          {editingMission ? 'Editar Missão' : 'Registrar Nova Missão'}
         </button>
         <button
           type="button"
@@ -160,10 +203,12 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
           <form onSubmit={handleRegisterSubmit} className="space-y-4" id="register-mission-form">
             <h3 className="text-base font-semibold text-zinc-900 flex items-center gap-2">
               <CalendarClock className="w-4 h-4 text-emerald-800" />
-              Lançar Missão
+              {editingMission ? 'Editar Missão' : 'Lançar Missão'}
             </h3>
             <p className="text-xs text-zinc-500">
-              Insira os dados exatos do seu início e encerramento para calcular automaticamente os valores devidos e deduzir da quota de 30 dias de cotas de alimentação.
+              {editingMission 
+                ? 'Atualize os detalhes da missão selecionada. Os cálculos e quotas do teto deslizante serão atualizados automaticamente ao salvar.' 
+                : 'Insira os dados exatos do seu início e encerramento para calcular automaticamente os valores devidos e deduzir da quota de 30 dias de cotas de alimentação.'}
             </p>
 
             {errorMsg && (
@@ -261,14 +306,34 @@ export default function MissionForm({ currentMissions, onAddMission, allPayments
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-2.5 px-4 bg-emerald-950 text-white font-bold rounded-xl shadow-xs hover:bg-emerald-900 transition-all flex items-center justify-center gap-2 text-sm"
-              id="submit-mission-btn"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Salvar Missão no Histórico
-            </button>
+            {editingMission ? (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 px-4 bg-emerald-950 text-white font-bold rounded-xl shadow-xs hover:bg-emerald-900 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                  id="submit-mission-btn"
+                >
+                  <PlusCircle className="w-4 h-4 text-emerald-250" />
+                  Salvar Alterações
+                </button>
+                <button
+                  type="button"
+                  onClick={onCancelEdit}
+                  className="py-2.5 px-4 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-700 font-bold rounded-xl text-sm transition-all cursor-pointer"
+                >
+                  Cancelar Edição
+                </button>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="w-full py-2.5 px-4 bg-emerald-950 text-white font-bold rounded-xl shadow-xs hover:bg-emerald-900 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                id="submit-mission-btn"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Salvar Missão no Histórico
+              </button>
+            )}
           </form>
         )}
 

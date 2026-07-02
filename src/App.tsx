@@ -17,6 +17,7 @@ export default function App() {
 
   const [isEditingSoldo, setIsEditingSoldo] = useState(false);
   const [soldoInput, setSoldoInput] = useState('');
+  const [editingMission, setEditingMission] = useState<Mission | null>(null);
 
   // Carregar configurações locais
   useEffect(() => {
@@ -107,6 +108,113 @@ export default function App() {
   const handleDeleteMission = (id: string) => {
     const updatedMissions = missions.filter((m) => m.id !== id);
     saveMissions(updatedMissions);
+    if (editingMission?.id === id) {
+      setEditingMission(null);
+    }
+  };
+
+  const handleEditMission = (id: string) => {
+    const missionToEdit = missions.find(m => m.id === id);
+    if (missionToEdit) {
+      setEditingMission(missionToEdit);
+      const formEl = document.getElementById('mission-form-card');
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleUpdateMission = (updatedMission: Mission) => {
+    const updatedMissions = missions.map(m => m.id === updatedMission.id ? updatedMission : m);
+    saveMissions(updatedMissions);
+    setEditingMission(null);
+  };
+
+  const handleImportBackup = (data: any) => {
+    if (!data) {
+      alert('Arquivo de backup inválido.');
+      return;
+    }
+    
+    let importedMissions: Mission[] = [];
+    let importedRanks: Rank[] = [];
+    let importedRankId = '';
+
+    if (Array.isArray(data)) {
+      importedMissions = data;
+    } else if (typeof data === 'object') {
+      if (Array.isArray(data.missions)) {
+        importedMissions = data.missions;
+      }
+      if (Array.isArray(data.ranks)) {
+        importedRanks = data.ranks;
+      }
+      if (typeof data.userRankId === 'string' && data.userRankId) {
+        importedRankId = data.userRankId;
+      }
+    }
+
+    if (importedMissions.length === 0 && importedRanks.length === 0) {
+      alert('Nenhum dado compatível encontrado no arquivo de backup.');
+      return;
+    }
+
+    const isValid = importedMissions.every((m: any) => m && typeof m.title === 'string' && typeof m.startDate === 'string' && typeof m.endDate === 'string');
+    if (importedMissions.length > 0 && !isValid) {
+      alert('O arquivo de backup possui missões em formato inválido.');
+      return;
+    }
+
+    if (importedMissions.length > 0) {
+      saveMissions(importedMissions);
+    }
+    
+    if (importedRanks.length > 0) {
+      setRanks(importedRanks);
+      try {
+        localStorage.setItem('militar_diarias_custom_ranks', JSON.stringify(importedRanks));
+      } catch (err) {
+        console.error('Failed to save custom ranks on import:', err);
+      }
+    }
+
+    if (importedRankId) {
+      const isValidRank = RANKS.some(r => r.id === importedRankId);
+      if (isValidRank) {
+        setUserRankId(importedRankId);
+        try {
+          localStorage.setItem('militar_diarias_user_rank', importedRankId);
+        } catch (err) {
+          console.error('Failed to save user rank on import:', err);
+        }
+      }
+    }
+
+    alert(`Backup importado com sucesso! ${importedMissions.length} missões carregadas.`);
+  };
+
+  const handleExportBackup = () => {
+    try {
+      const backupData = {
+        missions,
+        ranks,
+        userRankId,
+        exportedAt: new Date().toISOString()
+      };
+      const dataStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `calculadora_manobra_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export backup:', err);
+      alert('Ocorreu um erro ao exportar o backup.');
+    }
   };
 
   const handleResetMissions = () => {
@@ -309,6 +417,9 @@ export default function App() {
               <MissionForm
                 currentMissions={missions}
                 onAddMission={handleAddMission}
+                onUpdateMission={handleUpdateMission}
+                editingMission={editingMission}
+                onCancelEdit={() => setEditingMission(null)}
                 allPayments={calculationSummary.allPayments}
                 selectedRankId={userRankId}
                 ranks={ranks}
@@ -323,6 +434,9 @@ export default function App() {
               onDeleteMission={handleDeleteMission}
               onResetMissions={handleResetMissions}
               onLoadDefaults={handleLoadDefaults}
+              onEditMission={handleEditMission}
+              onImportBackup={handleImportBackup}
+              onExportBackup={handleExportBackup}
             />
           </div>
         </div>

@@ -1,16 +1,27 @@
 import React, { useState } from 'react';
 import { Mission, DailyPayment, CalculationSummary } from '../types';
 import { getActiveQuotaAtDate, formatDateString } from '../utils/calculator';
-import { Trash2, AlertTriangle, MapPin, Calendar, Clock, RotateCcw, AlertCircle, Sparkles, ChevronDown, ChevronUp, BarChart4 } from 'lucide-react';
+import { Trash2, AlertTriangle, MapPin, Calendar, Clock, RotateCcw, AlertCircle, Sparkles, ChevronDown, ChevronUp, BarChart4, Pencil, Download } from 'lucide-react';
 
 interface MissionHistoryProps {
   summary: CalculationSummary;
   onDeleteMission: (id: string) => void;
   onResetMissions: () => void;
   onLoadDefaults: () => void;
+  onEditMission: (id: string) => void;
+  onImportBackup: (data: any) => void;
+  onExportBackup: () => void;
 }
 
-export default function MissionHistory({ summary, onDeleteMission, onResetMissions, onLoadDefaults }: MissionHistoryProps) {
+export default function MissionHistory({ 
+  summary, 
+  onDeleteMission, 
+  onResetMissions, 
+  onLoadDefaults,
+  onEditMission,
+  onImportBackup,
+  onExportBackup
+}: MissionHistoryProps) {
   const { missionCalculations, allPayments } = summary;
   const [expandedMissionId, setExpandedMissionId] = useState<string | null>(null);
 
@@ -346,6 +357,17 @@ export default function MissionHistory({ summary, onDeleteMission, onResetMissio
                           {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
 
+                        {/* Edit Button */}
+                        <button
+                          type="button"
+                          onClick={() => onEditMission(calc.missionId)}
+                          className="p-1.5 text-blue-600 hover:text-blue-900 border border-zinc-200 hover:border-blue-150 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                          title="Editar missão"
+                          id={`edit-btn-${calc.missionId}`}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => onDeleteMission(calc.missionId)}
@@ -442,6 +464,66 @@ export default function MissionHistory({ summary, onDeleteMission, onResetMissio
             </button>
           </div>
         )}
+      </div>
+
+      {/* Backup Section */}
+      <div className="bg-white border border-zinc-200 rounded-3xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4" id="backup-container">
+        <div className="text-left">
+          <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">Backup dos Dados</h4>
+          <p className="text-[11px] text-zinc-500 mt-0.5">
+            Salve ou restaure seu histórico completo de missões e configurações de soldo localmente.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 justify-end">
+          {/* Import Backup */}
+          <button
+            type="button"
+            onClick={() => {
+              const fileInput = document.getElementById('import-file-input');
+              if (fileInput) fileInput.click();
+            }}
+            className="flex-1 sm:flex-none py-1.5 px-3 border border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            id="import-backup-btn"
+          >
+            <Download className="w-3.5 h-3.5 text-zinc-500 rotate-180" />
+            Importar Backup
+          </button>
+          
+          <input
+            type="file"
+            id="import-file-input"
+            accept=".json"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                try {
+                  const content = event.target?.result as string;
+                  const parsed = JSON.parse(content);
+                  onImportBackup(parsed);
+                  // Reset file input
+                  e.target.value = '';
+                } catch (err) {
+                  alert('Erro ao importar arquivo. Certifique-se de carregar um arquivo JSON de backup válido.');
+                }
+              };
+              reader.readAsText(file);
+            }}
+          />
+
+          {/* Export Backup */}
+          <button
+            type="button"
+            onClick={onExportBackup}
+            className="flex-1 sm:flex-none py-1.5 px-3 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            id="export-backup-btn"
+          >
+            <Download className="w-3.5 h-3.5 text-zinc-300" />
+            Exportar Backup
+          </button>
+        </div>
       </div>
     </div>
   );
