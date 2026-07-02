@@ -498,7 +498,7 @@ export default function MissionHistory({
                         <button
                           type="button"
                           onClick={() => onToggleReceived(calc.missionId)}
-                          className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold tracking-wide transition-all flex items-center justify-center gap-1.5 cursor-pointer border shadow-sm select-none shrink-0 ${
+                          className={`w-[106px] py-1 rounded-lg text-[10.5px] font-bold tracking-wide transition-all flex items-center justify-center gap-1.5 cursor-pointer border shadow-sm select-none shrink-0 ${
                             calc.received
                               ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-650'
                               : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-650'
