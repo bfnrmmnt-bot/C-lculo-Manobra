@@ -245,7 +245,7 @@ export default function App() {
   };
 
   const activeRankObj = ranks.find(r => r.id === userRankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0];
-  const dailyAdditionalCampaignValue = activeRankObj.soldo * 0.02 * 0.725;
+  const dailyAdditionalCampaignValue = activeRankObj.soldo * 0.02 * 0.7255;
 
   const handleStartEditSoldo = () => {
     setSoldoInput(activeRankObj.soldo.toString());
@@ -311,7 +311,7 @@ export default function App() {
             <span className="text-emerald-800">|</span>
             <div className="flex items-center gap-1.5 text-amber-300 font-semibold font-sans">
               <span className="w-2.5 h-2.5 rounded bg-amber-400 border border-amber-500 block animate-pulse" />
-              <span>GRAT REP OP (2% com desc. de 27,5% IR): <strong className="font-mono text-white">{formatBRL(dailyAdditionalCampaignValue)}/dia</strong></span>
+              <span>GRAT REP OP (2% com desc. de 27,45% IR): <strong className="font-mono text-white">{formatBRL(dailyAdditionalCampaignValue)}/dia</strong></span>
             </div>
           </div>
         </div>

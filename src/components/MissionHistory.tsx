@@ -413,8 +413,8 @@ export default function MissionHistory({
             {sortedCalculations.map((calc) => {
               const isExpanded = expandedMissionId === calc.missionId;
               const hasCapping = hasDegradedCheck(calc.payments);
-              const brutoManeuverPay = calc.maneuverPay / 0.725;
-              const irDeduction = brutoManeuverPay * 0.275;
+              const brutoManeuverPay = calc.maneuverPay / 0.7255;
+              const irDeduction = brutoManeuverPay * 0.2745;
 
               return (
                 <div
@@ -593,7 +593,7 @@ export default function MissionHistory({
 
                               <div className="flex justify-between pl-2 text-[10px] text-zinc-500 italic">
                                 <span>Alimentação de Missão: {formatBRL(p.rate)}</span>
-                                <span>GRAT REP OP (Líquido -27,5% IR): {formatBRL(p.maneuverAllowance || 0)}</span>
+                                <span>GRAT REP OP (Líquido -27,45% IR): {formatBRL(p.maneuverAllowance || 0)}</span>
                               </div>
                             </div>
                           );
@@ -601,7 +601,7 @@ export default function MissionHistory({
                       </div>
 
                       <div className="p-3 bg-zinc-100 rounded-xl text-[10.5px] text-zinc-500 italic mt-2">
-                        * O cálculo utiliza data de início e hora para alocar em períodos de 24h consecutivas. Se nas últimas 30 datas antes do processamento o militar exceder 10 cotas cheias de alimentação (N10/N5), o valor de alimentação é adjusted de R$ 135,00 para o valor residual de N1 (R$ 13,50) para proteger a quota, enquanto a GRAT REP OP (com desconto de 27,5% do imposto de renda) se mantém inalterada por dia de manobra.
+                        * O cálculo utiliza data de início e hora para alocar em períodos de 24h consecutivas. Se nas últimas 30 datas antes do processamento o militar exceder 10 cotas cheias de alimentação (N10/N5), o valor de alimentação é adjusted de R$ 135,00 para o valor residual de N1 (R$ 13,50) para proteger a quota, enquanto a GRAT REP OP (com desconto de 27,45% do imposto de renda) se mantém inalterada por dia de manobra.
                       </div>
                     </div>
                   )}

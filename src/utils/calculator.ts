@@ -130,7 +130,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
   allCandidates.forEach((candidate) => {
     const candDateObj = parseDateOnly(candidate.dateString);
     const rank = customRanks.find(r => r.id === candidate.rankId) || customRanks.find(r => r.id === 'terceiro_sargento')!;
-    const maneuverAllowance = rank.soldo * 0.02 * 0.725; // 2% base pay discounted by 27.5% Income Tax (IR)
+    const maneuverAllowance = rank.soldo * 0.02 * 0.7255; // 2% base pay discounted by 27.45% Income Tax (IR)
     
     if (candidate.originalType === 'N1') {
       // N1 is never capped, so it's directly assigned N1

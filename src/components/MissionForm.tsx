@@ -160,10 +160,10 @@ export default function MissionForm({
   };
 
   const selectedRankObj = ranks.find(r => r.id === rankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0]; // Terceiro sargento default
-  const dailyAdditionalValue = selectedRankObj.soldo * 0.02 * 0.725;
+  const dailyAdditionalValue = selectedRankObj.soldo * 0.02 * 0.7255;
 
   const simRankObj = ranks.find(r => r.id === simRankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0];
-  const simDailyAdditionalValue = simRankObj.soldo * 0.02 * 0.725;
+  const simDailyAdditionalValue = simRankObj.soldo * 0.02 * 0.7255;
 
   return (
     <div className="bg-white border border-zinc-200 rounded-3xl overflow-hidden shadow-xs" id="mission-form-card">
@@ -404,7 +404,7 @@ export default function MissionForm({
                     <div className="flex gap-2 text-[10px] text-zinc-500 mt-1">
                       <span>Alimentação: <strong>{formatBRL(simResult.estimatedFoodTotal)}</strong></span>
                       <span>•</span>
-                      <span>GRAT REP OP com IR (-27,5%): <strong>{formatBRL(simResult.estimatedManeuverTotal)}</strong></span>
+                      <span>GRAT REP OP com IR (-27,45%): <strong>{formatBRL(simResult.estimatedManeuverTotal)}</strong></span>
                     </div>
                   </div>
 
@@ -468,7 +468,7 @@ export default function MissionForm({
                   <div className="space-y-1">
                     <p className="font-semibold">Como funciona o cálculo deslizante?</p>
                     <p className="text-amber-905 text-amber-900 text-[11px] leading-relaxed">
-                      Este simulador assume que você registrará esta missão. Ele temporariamente calcula os 30 dias antecedentes de cada dia simulado. Caso as cotas de alimentação ultrapassem 10, o sistema degrada o pagamento daquele dia específico de N10 (R$ 135) para N1 (R$ 13,50) para respeitar o limite legal, mas a GRAT REP OP de {formatBRL(simDailyAdditionalValue)} (com 27,5% IR deduzido) mantém-se inalterada.
+                      Este simulador assume que você registrará esta missão. Ele temporariamente calcula os 30 dias antecedentes de cada dia simulado. Caso as cotas de alimentação ultrapassem 10, o sistema degrada o pagamento daquele dia específico de N10 (R$ 135) para N1 (R$ 13,50) para respeitar o limite legal, mas a GRAT REP OP de {formatBRL(simDailyAdditionalValue)} (com 27,45% IR deduzido) mantém-se inalterada.
                     </p>
                   </div>
                 </div>
