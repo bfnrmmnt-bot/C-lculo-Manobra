@@ -153,10 +153,15 @@ export default function MissionForm({
   };
 
   const formatBRL = (value: number) => {
+    if (isNaN(value) || !isFinite(value)) return 'R$\u00a00,00';
+    const fixed = value.toFixed(10);
+    const [integerPart, decimalPart] = fixed.split('.');
+    const truncatedValue = Number(integerPart + '.' + decimalPart.substring(0, 2));
+
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(value);
+    }).format(truncatedValue);
   };
 
   const selectedRankObj = ranks.find(r => r.id === rankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0]; // Terceiro sargento default
