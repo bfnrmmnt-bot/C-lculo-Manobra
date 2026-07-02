@@ -503,7 +503,7 @@ export default function MissionHistory({
                         <button
                           type="button"
                           onClick={() => onToggleReceived(calc.missionId)}
-                          className={`w-[106px] py-1 rounded-lg text-[10.5px] font-bold tracking-wide transition-all flex items-center justify-center gap-1.5 cursor-pointer border shadow-sm select-none shrink-0 ${
+                          className={`w-[106px] py-1 rounded-lg text-[10px] font-bold tracking-wide transition-all flex items-center justify-center gap-1 cursor-pointer border shadow-sm select-none shrink-0 ${
                             calc.received
                               ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-650'
                               : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-650'
@@ -512,7 +512,7 @@ export default function MissionHistory({
                           id={`received-btn-${calc.missionId}`}
                         >
                           {calc.received ? <Check className="w-3 h-3 shrink-0" /> : <X className="w-3 h-3 shrink-0" />}
-                          RECEBIDO
+                          {calc.received ? 'RECEBIDO' : 'NÃO RECEBIDO'}
                         </button>
 
                         <div className="flex items-center gap-2">
