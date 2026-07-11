@@ -50,38 +50,6 @@ export default function MissionForm({
   const [directN5, setDirectN5] = useState<number>(0);
   const [directN1, setDirectN1] = useState<number>(0);
 
-  // Inverse calculation helper
-  const parsedPaidValue = parseFloat(paidValueInput.replace(',', '.')) || 0;
-  
-  const getInverseCalculation = (val: number) => {
-    if (val <= 0) return null;
-    const r10 = 13500; // in cents
-    const r5 = 6750;   // in cents
-    const r1 = 1350;   // in cents
-    
-    let remaining = Math.round(val * 100);
-    const n10 = Math.floor(remaining / r10);
-    remaining = remaining % r10;
-    
-    const n5 = Math.floor(remaining / r5);
-    remaining = remaining % r5;
-    
-    const n1 = Math.floor(remaining / r1);
-    remaining = remaining % r1;
-    
-    const totalRepresented = (n10 * r10 + n5 * r5 + n1 * r1) / 100;
-    
-    return {
-      n10,
-      n5,
-      n1,
-      remainder: remaining / 100,
-      totalRepresented
-    };
-  };
-
-  const inverseResult = getInverseCalculation(parsedPaidValue);
-
   // Sync state with selectedRankId prop
   useEffect(() => {
     if (selectedRankId) {
@@ -207,6 +175,72 @@ export default function MissionForm({
 
   const simRankObj = ranks.find(r => r.id === simRankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0];
   const simDailyAdditionalValue = simRankObj.soldo * 0.02 * 0.7255;
+
+  // Inverse calculation helper based on food rate + Grat REP OP (with 27.45% IR discount)
+  const parsedPaidValue = parseFloat(paidValueInput.replace(',', '.')) || 0;
+
+  const getInverseCalculation = (val: number, additionalValue: number) => {
+    if (val <= 0) return null;
+    
+    const r10 = 135.00 + additionalValue;
+    const r5 = 67.50 + additionalValue;
+    const r1 = 13.50 + additionalValue;
+    
+    const maxN10 = Math.floor(val / r10);
+    
+    let bestDiff = Infinity;
+    let bestN10 = 0;
+    let bestN5 = 0;
+    let bestN1 = 0;
+    
+    for (let n10 = maxN10; n10 >= 0; n10--) {
+      const remainingAfter10 = val - n10 * r10;
+      if (remainingAfter10 < -0.01) continue;
+      
+      const maxN5 = Math.floor(remainingAfter10 / r5);
+      for (let n5 = maxN5; n5 >= 0; n5--) {
+        const remainingAfter5 = remainingAfter10 - n5 * r5;
+        if (remainingAfter5 < -0.01) continue;
+        
+        const n1 = Math.round(remainingAfter5 / r1);
+        if (n1 < 0) continue;
+        
+        const total = n10 * r10 + n5 * r5 + n1 * r1;
+        const diff = Math.abs(val - total);
+        
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          bestN10 = n10;
+          bestN5 = n5;
+          bestN1 = n1;
+        }
+        
+        if (diff < 0.01) {
+          break;
+        }
+      }
+      if (bestDiff < 0.01) {
+        break;
+      }
+    }
+    
+    const totalFood = bestN10 * 135.00 + bestN5 * 67.50 + bestN1 * 13.50;
+    const totalManeuver = (bestN10 + bestN5 + bestN1) * additionalValue;
+    const totalRepresented = totalFood + totalManeuver;
+    const remainder = Math.max(0, val - totalRepresented);
+    
+    return {
+      n10: bestN10,
+      n5: bestN5,
+      n1: bestN1,
+      totalFood,
+      totalManeuver,
+      remainder,
+      totalRepresented
+    };
+  };
+
+  const inverseResult = getInverseCalculation(parsedPaidValue, simDailyAdditionalValue);
 
   return (
     <div className="bg-white border border-zinc-200 rounded-3xl overflow-hidden shadow-xs" id="mission-form-card">
@@ -535,7 +569,7 @@ export default function MissionForm({
                 </h4>
               </div>
               <p className="text-xs text-zinc-500 leading-normal">
-                Utilize estas ferramentas para converter de forma rápida valores recebidos de volta em cotas ou estimar valores diretamente por quantidade de cotas.
+                Utilize estas ferramentas para decompor de forma precisa valores recebidos de volta em cotas ou estimar valores diretamente por quantidade, considerando a Gratificação de Representação de Operação (Grat REP OP) de 2% com o desconto de Imposto de Renda (27,45% de IR).
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -543,19 +577,29 @@ export default function MissionForm({
                 <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 flex flex-col justify-between space-y-4" id="decouple-calculator-frame">
                   <div>
                     <h5 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-1">
-                      1. Decompor Valor Recebido
+                      1. Decompor Valor Recebido (Líquido)
                     </h5>
                     <p className="text-[11px] text-zinc-500 leading-snug mb-3">
-                      Insira o valor líquido total recebido para deduzir quais cotas de alimentação puras (N10, N5, N1) compõem este pagamento.
+                      Insira o valor líquido total recebido para deduzir quais cotas (alimentação + Grat REP OP com IR) compõem este pagamento.
                     </p>
+                    
+                    <div className="mb-3 bg-white p-2.5 rounded-xl border border-zinc-150 text-[10.5px] text-zinc-600 space-y-1">
+                      <div>
+                        Posto/Graduação: <strong className="text-emerald-850 font-semibold">{simRankObj.name}</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Grat REP OP líquida (2% - 27,45% IR):</span>
+                        <strong className="font-mono text-zinc-700">{formatBRL(simDailyAdditionalValue)}/dia</strong>
+                      </div>
+                    </div>
 
-                    <div className="relative rounded-xl shadow-xs">
+                    <div className="relative rounded-xl shadow-xs mb-3">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <span className="text-zinc-400 text-xs font-bold font-mono">R$</span>
                       </div>
                       <input
                         type="text"
-                        placeholder="Ex: 216,00"
+                        placeholder="Ex: 586,82"
                         value={paidValueInput}
                         onChange={(e) => setPaidValueInput(e.target.value)}
                         className="block w-full pl-8 pr-3 py-2 text-xs border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-850 font-mono"
@@ -563,49 +607,72 @@ export default function MissionForm({
                       />
                     </div>
 
-                    <div className="space-y-1.5 mt-3">
+                    <div className="space-y-1.5">
                       {/* N10 Badge */}
-                      <div className="flex items-center justify-between text-xs p-2 bg-white border border-zinc-150 rounded-xl">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 block shrink-0" />
-                          <span className="font-semibold text-zinc-700">N10 (R$ 135,00):</span>
+                      <div className="flex flex-col gap-0.5 p-2 bg-white border border-zinc-150 rounded-xl">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 block shrink-0" />
+                            <span className="font-semibold text-zinc-700 font-mono">N10 ({formatBRL(135.00 + simDailyAdditionalValue)}):</span>
+                          </div>
+                          <span className="font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                            {inverseResult ? `${inverseResult.n10} ${inverseResult.n10 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                          </span>
                         </div>
-                        <span className="font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                          {inverseResult ? `${inverseResult.n10} ${inverseResult.n10 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                        <span className="text-[9.5px] text-zinc-400 ml-4.5 font-mono">
+                          Alimentação: {formatBRL(135.00)} + Grat REP OP: {formatBRL(simDailyAdditionalValue)}
                         </span>
                       </div>
 
                       {/* N5 Badge */}
-                      <div className="flex items-center justify-between text-xs p-2 bg-white border border-zinc-150 rounded-xl">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-sky-500 block shrink-0" />
-                          <span className="font-semibold text-zinc-700">N5 (R$ 67,50):</span>
+                      <div className="flex flex-col gap-0.5 p-2 bg-white border border-zinc-150 rounded-xl">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 block shrink-0" />
+                            <span className="font-semibold text-zinc-700 font-mono">N5 ({formatBRL(67.50 + simDailyAdditionalValue)}):</span>
+                          </div>
+                          <span className="font-mono font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100">
+                            {inverseResult ? `${inverseResult.n5} ${inverseResult.n5 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                          </span>
                         </div>
-                        <span className="font-mono font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100">
-                          {inverseResult ? `${inverseResult.n5} ${inverseResult.n5 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                        <span className="text-[9.5px] text-zinc-400 ml-4.5 font-mono">
+                          Alimentação: {formatBRL(67.50)} + Grat REP OP: {formatBRL(simDailyAdditionalValue)}
                         </span>
                       </div>
 
                       {/* N1 Badge */}
-                      <div className="flex items-center justify-between text-xs p-2 bg-white border border-zinc-150 rounded-xl">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 block shrink-0" />
-                          <span className="font-semibold text-zinc-700">N1 (R$ 13,50):</span>
+                      <div className="flex flex-col gap-0.5 p-2 bg-white border border-zinc-150 rounded-xl">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 block shrink-0" />
+                            <span className="font-semibold text-zinc-700 font-mono">N1 ({formatBRL(13.50 + simDailyAdditionalValue)}):</span>
+                          </div>
+                          <span className="font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
+                            {inverseResult ? `${inverseResult.n1} ${inverseResult.n1 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                          </span>
                         </div>
-                        <span className="font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
-                          {inverseResult ? `${inverseResult.n1} ${inverseResult.n1 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                        <span className="text-[9.5px] text-zinc-400 ml-4.5 font-mono">
+                          Alimentação: {formatBRL(13.50)} + Grat REP OP: {formatBRL(simDailyAdditionalValue)}
                         </span>
                       </div>
                     </div>
                   </div>
 
                   {inverseResult && (
-                    <div className="pt-2 border-t border-dashed border-zinc-200 flex flex-col gap-1 text-[11px] bg-white p-3 rounded-xl border border-zinc-150 animate-fade-in">
-                      <div className="flex justify-between font-bold text-zinc-800">
+                    <div className="pt-2 border-t border-dashed border-zinc-200 flex flex-col gap-1 text-[11px] bg-white p-3 rounded-xl border border-zinc-150 animate-fade-in space-y-1">
+                      <div className="flex justify-between text-zinc-600 font-medium">
+                        <span>Total de Alimentação:</span>
+                        <span className="font-mono">{formatBRL(inverseResult.totalFood)}</span>
+                      </div>
+                      <div className="flex justify-between text-zinc-600 font-medium border-b border-zinc-100 pb-1">
+                        <span>Total Grat. REP OP líquida:</span>
+                        <span className="font-mono">{formatBRL(inverseResult.totalManeuver)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-zinc-800 pt-0.5 text-xs">
                         <span>Soma Equivalente:</span>
                         <span className="font-mono text-emerald-850">{formatBRL(inverseResult.totalRepresented)}</span>
                       </div>
-                      {inverseResult.remainder > 0 && (
+                      {inverseResult.remainder > 0.01 && (
                         <div className="text-amber-800 bg-amber-50 px-2 py-1 rounded-lg text-[10px] flex items-center gap-1.5 mt-1 border border-amber-150 font-medium">
                           <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                           <span>Resíduo de {formatBRL(inverseResult.remainder)} não se divide em cotas inteiras.</span>
@@ -625,12 +692,22 @@ export default function MissionForm({
                       Insira livremente a quantidade de cada tipo de cota de alimentação para obter o somatório instantâneo calculado.
                     </p>
 
+                    <div className="mb-3 bg-white p-2.5 rounded-xl border border-zinc-150 text-[10.5px] text-zinc-600 space-y-1">
+                      <div>
+                        Posto/Graduação: <strong className="text-emerald-850 font-semibold">{simRankObj.name}</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Grat REP OP líquida (2% - 27,45% IR):</span>
+                        <strong className="font-mono text-zinc-700">{formatBRL(simDailyAdditionalValue)}/dia</strong>
+                      </div>
+                    </div>
+
                     <div className="space-y-2.5">
                       {/* Direct N10 */}
                       <div className="flex items-center justify-between gap-4">
                         <span className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-emerald-600" />
-                          N10 (R$ 135,00)
+                          N10 ({formatBRL(135.00 + simDailyAdditionalValue)})
                         </span>
                         <div className="flex items-center border border-zinc-200 rounded-xl bg-white overflow-hidden shadow-2xs">
                           <button
@@ -664,7 +741,7 @@ export default function MissionForm({
                       <div className="flex items-center justify-between gap-4">
                         <span className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-sky-500" />
-                          N5 (R$ 67,50)
+                          N5 ({formatBRL(67.50 + simDailyAdditionalValue)})
                         </span>
                         <div className="flex items-center border border-zinc-200 rounded-xl bg-white overflow-hidden shadow-2xs">
                           <button
@@ -698,7 +775,7 @@ export default function MissionForm({
                       <div className="flex items-center justify-between gap-4">
                         <span className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-amber-500" />
-                          N1 (R$ 13,50)
+                          N1 ({formatBRL(13.50 + simDailyAdditionalValue)})
                         </span>
                         <div className="flex items-center border border-zinc-200 rounded-xl bg-white overflow-hidden shadow-2xs">
                           <button
@@ -730,14 +807,24 @@ export default function MissionForm({
                     </div>
                   </div>
 
-                  <div className="pt-2.5 border-t border-dashed border-zinc-200 flex flex-col justify-end text-right bg-white p-3 rounded-xl border border-zinc-150">
-                    <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Total Calculado</span>
-                    <span className="text-xl font-bold font-mono text-emerald-850 mt-0.5">
-                      {formatBRL((directN10 * 135) + (directN5 * 67.5) + (directN1 * 13.5))}
-                    </span>
-                    <span className="text-[9.5px] text-zinc-500 font-mono mt-0.5">
-                      ({directN10}x N10 + {directN5}x N5 + {directN1}x N1)
-                    </span>
+                  <div className="pt-2.5 border-t border-dashed border-zinc-200 flex flex-col justify-end text-right bg-white p-3 rounded-xl border border-zinc-150 space-y-1">
+                    <div className="flex justify-between text-[11px] text-zinc-600 font-medium">
+                      <span>Alimentação:</span>
+                      <span className="font-mono">{formatBRL(directN10 * 135 + directN5 * 67.5 + directN1 * 13.5)}</span>
+                    </div>
+                    <div className="flex justify-between text-[11px] text-zinc-600 font-medium border-b border-zinc-100 pb-1">
+                      <span>Grat. REP OP líquida:</span>
+                      <span className="font-mono">{formatBRL((directN10 + directN5 + directN1) * simDailyAdditionalValue)}</span>
+                    </div>
+                    <div className="flex flex-col text-right pt-1">
+                      <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider">Total Calculado Líquido</span>
+                      <span className="text-xl font-bold font-mono text-emerald-850 mt-0.5">
+                        {formatBRL((directN10 * (135 + simDailyAdditionalValue)) + (directN5 * (67.5 + simDailyAdditionalValue)) + (directN1 * (13.5 + simDailyAdditionalValue)))}
+                      </span>
+                      <span className="text-[9.5px] text-zinc-500 font-mono mt-0.5">
+                        ({directN10}x N10 + {directN5}x N5 + {directN1}x N1)
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
