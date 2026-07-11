@@ -44,6 +44,44 @@ export default function MissionForm({
   const [simRankId, setSimRankId] = useState(selectedRankId);
   const [simResult, setSimResult] = useState<ReturnType<typeof simulateProposedMission> | null>(null);
 
+  // Quick support calculators state
+  const [paidValueInput, setPaidValueInput] = useState('');
+  const [directN10, setDirectN10] = useState<number>(0);
+  const [directN5, setDirectN5] = useState<number>(0);
+  const [directN1, setDirectN1] = useState<number>(0);
+
+  // Inverse calculation helper
+  const parsedPaidValue = parseFloat(paidValueInput.replace(',', '.')) || 0;
+  
+  const getInverseCalculation = (val: number) => {
+    if (val <= 0) return null;
+    const r10 = 13500; // in cents
+    const r5 = 6750;   // in cents
+    const r1 = 1350;   // in cents
+    
+    let remaining = Math.round(val * 100);
+    const n10 = Math.floor(remaining / r10);
+    remaining = remaining % r10;
+    
+    const n5 = Math.floor(remaining / r5);
+    remaining = remaining % r5;
+    
+    const n1 = Math.floor(remaining / r1);
+    remaining = remaining % r1;
+    
+    const totalRepresented = (n10 * r10 + n5 * r5 + n1 * r1) / 100;
+    
+    return {
+      n10,
+      n5,
+      n1,
+      remainder: remaining / 100,
+      totalRepresented
+    };
+  };
+
+  const inverseResult = getInverseCalculation(parsedPaidValue);
+
   // Sync state with selectedRankId prop
   useEffect(() => {
     if (selectedRankId) {
@@ -484,6 +522,226 @@ export default function MissionForm({
                 <span className="text-xs font-medium">Insira datas e horas válidas para rodar o simulador em tempo real.</span>
               </div>
             )}
+
+            {/* Divider */}
+            <div className="border-t border-zinc-150 my-6 pt-5" id="auxiliary-calculators-divider" />
+
+            {/* Support Calculators Bento-like Section */}
+            <div className="space-y-4" id="quick-calculators-section">
+              <div className="flex items-center gap-2">
+                <Calculator className="w-4.5 h-4.5 text-emerald-800" />
+                <h4 className="text-sm font-bold text-zinc-800 uppercase tracking-wide">
+                  Calculadoras de Apoio a Diárias
+                </h4>
+              </div>
+              <p className="text-xs text-zinc-500 leading-normal">
+                Utilize estas ferramentas para converter de forma rápida valores recebidos de volta em cotas ou estimar valores diretamente por quantidade de cotas.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Frame 1: Paid Value Decomposition */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 flex flex-col justify-between space-y-4" id="decouple-calculator-frame">
+                  <div>
+                    <h5 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-1">
+                      1. Decompor Valor Recebido
+                    </h5>
+                    <p className="text-[11px] text-zinc-500 leading-snug mb-3">
+                      Insira o valor líquido total recebido para deduzir quais cotas de alimentação puras (N10, N5, N1) compõem este pagamento.
+                    </p>
+
+                    <div className="relative rounded-xl shadow-xs">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-zinc-400 text-xs font-bold font-mono">R$</span>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Ex: 216,00"
+                        value={paidValueInput}
+                        onChange={(e) => setPaidValueInput(e.target.value)}
+                        className="block w-full pl-8 pr-3 py-2 text-xs border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-850 font-mono"
+                        id="paid-value-input"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5 mt-3">
+                      {/* N10 Badge */}
+                      <div className="flex items-center justify-between text-xs p-2 bg-white border border-zinc-150 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 block shrink-0" />
+                          <span className="font-semibold text-zinc-700">N10 (R$ 135,00):</span>
+                        </div>
+                        <span className="font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                          {inverseResult ? `${inverseResult.n10} ${inverseResult.n10 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                        </span>
+                      </div>
+
+                      {/* N5 Badge */}
+                      <div className="flex items-center justify-between text-xs p-2 bg-white border border-zinc-150 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-sky-500 block shrink-0" />
+                          <span className="font-semibold text-zinc-700">N5 (R$ 67,50):</span>
+                        </div>
+                        <span className="font-mono font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100">
+                          {inverseResult ? `${inverseResult.n5} ${inverseResult.n5 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                        </span>
+                      </div>
+
+                      {/* N1 Badge */}
+                      <div className="flex items-center justify-between text-xs p-2 bg-white border border-zinc-150 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 block shrink-0" />
+                          <span className="font-semibold text-zinc-700">N1 (R$ 13,50):</span>
+                        </div>
+                        <span className="font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
+                          {inverseResult ? `${inverseResult.n1} ${inverseResult.n1 === 1 ? 'cota' : 'cotas'}` : '0 cotas'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {inverseResult && (
+                    <div className="pt-2 border-t border-dashed border-zinc-200 flex flex-col gap-1 text-[11px] bg-white p-3 rounded-xl border border-zinc-150 animate-fade-in">
+                      <div className="flex justify-between font-bold text-zinc-800">
+                        <span>Soma Equivalente:</span>
+                        <span className="font-mono text-emerald-850">{formatBRL(inverseResult.totalRepresented)}</span>
+                      </div>
+                      {inverseResult.remainder > 0 && (
+                        <div className="text-amber-800 bg-amber-50 px-2 py-1 rounded-lg text-[10px] flex items-center gap-1.5 mt-1 border border-amber-150 font-medium">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span>Resíduo de {formatBRL(inverseResult.remainder)} não se divide em cotas inteiras.</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Frame 2: Direct Simulator */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 flex flex-col justify-between space-y-4" id="direct-calculator-frame">
+                  <div>
+                    <h5 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-1">
+                      2. Calcular por Quantidade
+                    </h5>
+                    <p className="text-[11px] text-zinc-500 leading-snug mb-3">
+                      Insira livremente a quantidade de cada tipo de cota de alimentação para obter o somatório instantâneo calculado.
+                    </p>
+
+                    <div className="space-y-2.5">
+                      {/* Direct N10 */}
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                          N10 (R$ 135,00)
+                        </span>
+                        <div className="flex items-center border border-zinc-200 rounded-xl bg-white overflow-hidden shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => setDirectN10(Math.max(0, directN10 - 1))}
+                            className="px-2.5 py-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors cursor-pointer select-none font-bold text-xs"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="0"
+                            value={directN10}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              setDirectN10(isNaN(val) || val < 0 ? 0 : val);
+                            }}
+                            className="w-12 text-center text-xs py-1 focus:outline-none font-mono font-bold text-zinc-800 border-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setDirectN10(directN10 + 1)}
+                            className="px-2.5 py-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors cursor-pointer select-none font-bold text-xs"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Direct N5 */}
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-sky-500" />
+                          N5 (R$ 67,50)
+                        </span>
+                        <div className="flex items-center border border-zinc-200 rounded-xl bg-white overflow-hidden shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => setDirectN5(Math.max(0, directN5 - 1))}
+                            className="px-2.5 py-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors cursor-pointer select-none font-bold text-xs"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="0"
+                            value={directN5}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              setDirectN5(isNaN(val) || val < 0 ? 0 : val);
+                            }}
+                            className="w-12 text-center text-xs py-1 focus:outline-none font-mono font-bold text-zinc-800 border-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setDirectN5(directN5 + 1)}
+                            className="px-2.5 py-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors cursor-pointer select-none font-bold text-xs"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Direct N1 */}
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-amber-500" />
+                          N1 (R$ 13,50)
+                        </span>
+                        <div className="flex items-center border border-zinc-200 rounded-xl bg-white overflow-hidden shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => setDirectN1(Math.max(0, directN1 - 1))}
+                            className="px-2.5 py-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors cursor-pointer select-none font-bold text-xs"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="0"
+                            value={directN1}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              setDirectN1(isNaN(val) || val < 0 ? 0 : val);
+                            }}
+                            className="w-12 text-center text-xs py-1 focus:outline-none font-mono font-bold text-zinc-800 border-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setDirectN1(directN1 + 1)}
+                            className="px-2.5 py-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition-colors cursor-pointer select-none font-bold text-xs"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2.5 border-t border-dashed border-zinc-200 flex flex-col justify-end text-right bg-white p-3 rounded-xl border border-zinc-150">
+                    <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Total Calculado</span>
+                    <span className="text-xl font-bold font-mono text-emerald-850 mt-0.5">
+                      {formatBRL((directN10 * 135) + (directN5 * 67.5) + (directN1 * 13.5))}
+                    </span>
+                    <span className="text-[9.5px] text-zinc-500 font-mono mt-0.5">
+                      ({directN10}x N10 + {directN5}x N5 + {directN1}x N1)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
