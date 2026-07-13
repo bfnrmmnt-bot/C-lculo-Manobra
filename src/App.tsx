@@ -297,6 +297,98 @@ export default function App() {
             Calculadora Manobra
           </h1>
 
+          {/* Perfil do Militar Panel */}
+          <div className="bg-emerald-950 border border-emerald-800/80 rounded-3xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 text-left w-full max-w-3xl mt-5" id="military-profile-panel">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-emerald-900/60 rounded-2xl text-emerald-300 shrink-0 border border-emerald-800/50">
+                <User className="w-6 h-6 text-emerald-300" />
+              </div>
+              <div>
+                <span className="text-[10px] text-emerald-300/80 font-bold uppercase tracking-wider block">Perfil</span>
+                <h2 className="text-base font-bold text-white flex flex-wrap items-center gap-2 font-sans leading-snug">
+                  Graduação: <span className="relative inline-flex items-center">
+                    <select
+                      id="badge-rank-select"
+                      value={userRankId}
+                      onChange={(e) => {
+                        handleRankChange(e.target.value);
+                        setIsEditingSoldo(false);
+                      }}
+                      className="text-xs px-2.5 py-1 pr-6 font-bold text-emerald-100 bg-emerald-900 border border-emerald-800 hover:bg-emerald-850 rounded-lg cursor-pointer outline-none transition-colors appearance-none"
+                    >
+                      {ranks.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.name}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-emerald-300">
+                      <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                      </svg>
+                    </span>
+                  </span>
+                </h2>
+                
+                {isEditingSoldo ? (
+                  <div className="flex flex-wrap items-center gap-2 mt-1.5 bg-emerald-900/40 p-2 rounded-xl border border-emerald-800 max-w-sm">
+                    <div className="flex items-center gap-1 font-sans">
+                      <span className="text-xs text-emerald-300 font-medium">R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={soldoInput}
+                        onChange={(e) => setSoldoInput(e.target.value)}
+                        className="w-24 text-xs font-mono font-semibold px-2 py-1 border border-emerald-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600 bg-emerald-950 text-white animate-none"
+                        placeholder="Valor do soldo"
+                        id="edit-soldo-input"
+                      />
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={handleSaveSoldo}
+                        className="text-[10px] font-bold bg-amber-500 text-emerald-950 px-2.5 py-1 rounded-lg hover:bg-amber-400 transition-colors shadow-xs"
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        onClick={() => setIsEditingSoldo(false)}
+                        className="text-[10px] font-bold bg-emerald-800 text-emerald-200 px-2.5 py-1 rounded-lg hover:bg-emerald-700 transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-emerald-300/80 mt-1 flex flex-wrap items-center gap-2">
+                    <p>
+                      Soldo Base: <strong className="font-mono text-amber-300 font-bold">{formatBRL(activeRankObj.soldo)}</strong>
+                    </p>
+                    <span className="text-emerald-800">|</span>
+                    <button
+                      onClick={handleStartEditSoldo}
+                      className="text-emerald-300 hover:text-emerald-100 font-bold text-xs underline decoration-dotted underline-offset-2 transition-colors cursor-pointer"
+                    >
+                      Editar Soldo
+                    </button>
+                    {ranks.some((r, i) => r.soldo !== RANKS[i]?.soldo) && (
+                      <>
+                        <span className="text-emerald-800">|</span>
+                        <button
+                          onClick={handleResetSoldos}
+                          className="text-rose-300 hover:text-rose-200 text-xs font-semibold hover:underline cursor-pointer"
+                        >
+                          Restaurar Padrão
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Quick Informational Badges */}
           <div className="flex flex-wrap items-center justify-center gap-2.5 bg-emerald-900/40 p-3 rounded-2xl border border-emerald-900/60 text-xs mt-4">
             <div className="flex items-center gap-1">
@@ -310,7 +402,7 @@ export default function App() {
             </div>
             <span className="text-emerald-800">|</span>
             <div className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded bg-amber-100 border border-amber-300 block" />
+              <span className="w-2.5 h-2.5 rounded bg-rose-100 border border-rose-300 block" />
               <span>N1: <strong>R$ 13,50</strong></span>
             </div>
             <span className="text-emerald-800">|</span>
@@ -324,97 +416,6 @@ export default function App() {
 
       {/* Main Grid Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6" id="app-main">
-        {/* Perfil do Militar Panel */}
-        <div className="bg-white border border-zinc-200 rounded-3xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6" id="military-profile-panel">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-850 shrink-0 border border-emerald-100">
-              <User className="w-6 h-6 text-emerald-800" />
-            </div>
-            <div>
-              <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Perfil</span>
-              <h2 className="text-base font-bold text-zinc-900 flex flex-wrap items-center gap-2 font-sans leading-snug">
-                Graduação: <span className="relative inline-flex items-center">
-                  <select
-                    id="badge-rank-select"
-                    value={userRankId}
-                    onChange={(e) => {
-                      handleRankChange(e.target.value);
-                      setIsEditingSoldo(false);
-                    }}
-                    className="text-xs px-2.5 py-1 pr-6 font-bold text-emerald-950 bg-emerald-100/60 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer outline-none transition-colors appearance-none"
-                  >
-                    {ranks.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-emerald-850">
-                    <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
-                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>
-                  </span>
-                </span>
-              </h2>
-              
-              {isEditingSoldo ? (
-                <div className="flex flex-wrap items-center gap-2 mt-1.5 bg-zinc-50 p-2 rounded-xl border border-zinc-150 max-w-sm">
-                  <div className="flex items-center gap-1 font-sans">
-                    <span className="text-xs text-zinc-500 font-medium">R$</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={soldoInput}
-                      onChange={(e) => setSoldoInput(e.target.value)}
-                      className="w-24 text-xs font-mono font-semibold px-2 py-1 border border-zinc-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-800 bg-white text-zinc-805 animate-none"
-                      placeholder="Valor do soldo"
-                      id="edit-soldo-input"
-                    />
-                  </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={handleSaveSoldo}
-                      className="text-[10px] font-bold bg-emerald-850 text-white px-2.5 py-1 rounded-lg hover:bg-emerald-800 transition-colors shadow-xs"
-                    >
-                      Salvar
-                    </button>
-                    <button
-                      onClick={() => setIsEditingSoldo(false)}
-                      className="text-[10px] font-bold bg-zinc-200 text-zinc-700 px-2.5 py-1 rounded-lg hover:bg-zinc-300 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-xs text-zinc-500 mt-1 flex flex-wrap items-center gap-2">
-                  <p>
-                    Soldo Base: <strong className="font-mono text-zinc-700">{formatBRL(activeRankObj.soldo)}</strong>
-                  </p>
-                  <span className="text-zinc-300">|</span>
-                  <button
-                    onClick={handleStartEditSoldo}
-                    className="text-emerald-800 hover:text-emerald-950 font-bold text-xs underline decoration-dotted underline-offset-2 transition-colors cursor-pointer"
-                  >
-                    Editar Soldo
-                  </button>
-                  {ranks.some((r, i) => r.soldo !== RANKS[i]?.soldo) && (
-                    <>
-                      <span className="text-zinc-300">|</span>
-                      <button
-                        onClick={handleResetSoldos}
-                        className="text-amber-800 hover:text-amber-950 text-xs font-semibold hover:underline cursor-pointer"
-                      >
-                        Restaurar Padrão
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
 
         {/* Dynamic Financial Counter & Statistics Dashboard */}
         {isInitialized && (
