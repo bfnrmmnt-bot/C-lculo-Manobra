@@ -56,6 +56,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
     missionId: string;
     missionTitle: string;
     rankId: string;
+    isFoodZeroed?: boolean;
   }
 
   const allCandidates: Candidate[] = [];
@@ -74,21 +75,25 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
 
     if (durationHours < 8) {
       // Receives N1 pay (less than 8 hours) on the start date
+      const dateString = formatDateString(startObj);
       allCandidates.push({
-        dateString: formatDateString(startObj),
+        dateString,
         originalType: 'N1',
         missionId: mission.id,
         missionTitle: mission.title,
         rankId: activeRankId,
+        isFoodZeroed: mission.zeroFoodDates?.includes(dateString) || false,
       });
     } else if (durationHours >= 8 && durationHours < 24) {
       // Receives N5 pay (between 8 and 24 hours) on the start date
+      const dateString = formatDateString(startObj);
       allCandidates.push({
-        dateString: formatDateString(startObj),
+        dateString,
         originalType: 'N5',
         missionId: mission.id,
         missionTitle: mission.title,
         rankId: activeRankId,
+        isFoodZeroed: mission.zeroFoodDates?.includes(dateString) || false,
       });
     } else {
       // Receives N10 pay for full 24-hour blocks
@@ -116,6 +121,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
           missionId: mission.id,
           missionTitle: mission.title,
           rankId: activeRankId,
+          isFoodZeroed: mission.zeroFoodDates?.includes(dateStr) || false,
         });
       });
     }
@@ -134,16 +140,17 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
     
     if (candidate.originalType === 'N1') {
       // N1 is never capped, so it's directly assigned N1
+      const rate = candidate.isFoodZeroed ? 0 : RATES.N1;
       committedPayments.push({
         dateString: candidate.dateString,
         originalType: 'N1',
         assignedType: 'N1',
-        rate: RATES.N1,
+        rate,
         missionId: candidate.missionId,
         missionTitle: candidate.missionTitle,
         rankId: candidate.rankId,
         maneuverAllowance,
-        totalDayValue: RATES.N1 + maneuverAllowance,
+        totalDayValue: rate + maneuverAllowance,
       });
       return;
     }
@@ -156,7 +163,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
     // Sum of N10 and N5 payments already allocated in that 30-day window
     const activePremiumCount = committedPayments.filter((payment) => {
       const isInWindow = payment.dateString >= thirtyDaysAgoStr && payment.dateString <= candidate.dateString;
-      const isPremium = payment.assignedType === 'N10' || payment.assignedType === 'N5';
+      const isPremium = (payment.assignedType === 'N10' || payment.assignedType === 'N5') && payment.rate > 0;
       return isInWindow && isPremium;
     }).length;
 
@@ -165,7 +172,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
       assignedType = 'N1';
     }
 
-    const rate = RATES[assignedType];
+    const rate = candidate.isFoodZeroed ? 0 : RATES[assignedType];
 
     committedPayments.push({
       dateString: candidate.dateString,

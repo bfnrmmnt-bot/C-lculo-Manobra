@@ -22,6 +22,7 @@ export interface Mission {
   location?: string;
   rankId?: string; // Associated rank for this specific mission
   received?: boolean;
+  zeroFoodDates?: string[]; // Array of YYYY-MM-DD dates where food allowance is zeroed
 }
 
 export type PayType = 'N10' | 'N5' | 'N1';

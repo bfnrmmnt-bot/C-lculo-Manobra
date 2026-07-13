@@ -93,6 +93,7 @@ export default function MissionHistory({
       const dateStr = formatDateString(tempDate);
       const { activeCount, remaining } = getActiveQuotaAtDate(allPayments, dateStr);
       const paymentsOnThisDay = allPayments.filter((p) => p.dateString === dateStr);
+      const actualFoodRate = paymentsOnThisDay.length > 0 ? paymentsOnThisDay.reduce((sum, p) => sum + p.rate, 0) : 0;
 
       let primaryType = 'Folga';
       if (paymentsOnThisDay.some((p) => p.assignedType === 'N10')) primaryType = 'N10';
@@ -105,6 +106,7 @@ export default function MissionHistory({
         activeCount,
         remaining,
         primaryType,
+        actualFoodRate,
         missionTitles: paymentsOnThisDay.length > 0
           ? Array.from(new Set(paymentsOnThisDay.map((p) => p.missionTitle))).join(', ')
           : 'Sem escala de missão',
@@ -322,13 +324,7 @@ export default function MissionHistory({
                 <div>
                   <span className="text-[9.5px] text-zinc-400 font-bold uppercase tracking-wider block">Valor de Alimentação Creditado</span>
                   <span className="text-emerald-900 font-bold font-mono text-sm block mt-0.5">
-                    {selectedDayDetail.primaryType === 'N10'
-                      ? formatBRL(135)
-                      : selectedDayDetail.primaryType === 'N5'
-                      ? formatBRL(67.5)
-                      : selectedDayDetail.primaryType === 'N1'
-                      ? formatBRL(13.5)
-                      : formatBRL(0)}
+                    {formatBRL(selectedDayDetail.actualFoodRate)}
                   </span>
                 </div>
               </div>
@@ -576,7 +572,13 @@ export default function MissionHistory({
 
                                 <div className="flex items-center gap-4">
                                   <div className="text-right">
-                                    {isDegraded ? (
+                                    {p.rate === 0 ? (
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-[11px] text-amber-850 text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200">
+                                          Alimentação Zerada
+                                        </span>
+                                      </div>
+                                    ) : isDegraded ? (
                                       <div className="flex flex-col items-end">
                                         <span className="text-[11px] text-amber-750 text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-105">
                                           <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
@@ -597,7 +599,7 @@ export default function MissionHistory({
                               </div>
 
                               <div className="flex justify-between pl-2 text-[10px] text-zinc-500 italic">
-                                <span>Alimentação de Missão: {formatBRL(p.rate)}</span>
+                                <span>Alimentação de Missão: {formatBRL(p.rate)} {p.rate === 0 && <span className="text-amber-800 font-bold font-sans not-italic ml-1">(Zerada pelo Usuário)</span>}</span>
                                 <span>GRAT REP OP (Líquido -27,45% IR): {formatBRL(p.maneuverAllowance || 0)}</span>
                               </div>
                             </div>

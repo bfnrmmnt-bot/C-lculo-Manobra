@@ -32,6 +32,7 @@ export default function MissionForm({
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [rankId, setRankId] = useState(selectedRankId);
+  const [zeroFoodDates, setZeroFoodDates] = useState<string[]>([]);
   
   // Set default dates appropriately based on current year 2026
   const [startDate, setStartDate] = useState('2026-06-01T08:00');
@@ -67,6 +68,7 @@ export default function MissionForm({
       setStartDate(editingMission.startDate);
       setEndDate(editingMission.endDate);
       setRankId(editingMission.rankId);
+      setZeroFoodDates(editingMission.zeroFoodDates || []);
       setActiveTab('register');
     } else {
       setTitle('');
@@ -74,6 +76,7 @@ export default function MissionForm({
       setLocation('');
       setStartDate('2026-06-01T08:00');
       setEndDate('2026-06-02T12:00');
+      setZeroFoodDates([]);
     }
   }, [editingMission]);
 
@@ -92,6 +95,44 @@ export default function MissionForm({
       setSimResult(null);
     }
   }, [simStartDate, simEndDate, currentMissions, simRankId, ranks]);
+
+  const getDatesForCurrentForm = () => {
+    try {
+      const startObj = new Date(startDate);
+      const endObj = new Date(endDate);
+      if (isNaN(startObj.getTime()) || isNaN(endObj.getTime())) return [];
+      const diffMs = endObj.getTime() - startObj.getTime();
+      const durationHours = diffMs / (1000 * 60 * 60);
+      if (durationHours <= 0) return [];
+
+      const formatDateLocal = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      if (durationHours < 24) {
+        return [formatDateLocal(startObj)];
+      } else {
+        const fullBlocks = Math.floor(durationHours / 24);
+        const residualHours = durationHours % 24;
+        const totalDays = fullBlocks + (residualHours > 0 ? 1 : 0);
+        
+        const dates: string[] = [];
+        const current = new Date(startObj.getTime());
+        for (let i = 0; i < totalDays; i++) {
+          dates.push(formatDateLocal(current));
+          current.setDate(current.getDate() + 1);
+        }
+        return dates;
+      }
+    } catch {
+      return [];
+    }
+  };
+
+  const formDates = getDatesForCurrentForm();
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +165,7 @@ export default function MissionForm({
         startDate,
         endDate,
         rankId,
+        zeroFoodDates,
       });
     } else {
       // Call callback to persist mission with the selected rankId
@@ -134,6 +176,7 @@ export default function MissionForm({
         startDate,
         endDate,
         rankId,
+        zeroFoodDates,
       });
     }
 
@@ -141,6 +184,7 @@ export default function MissionForm({
     setTitle('');
     setDescription('');
     setLocation('');
+    setZeroFoodDates([]);
     // Advance default dates forward to prevent overlapping accidentally
     setStartDate(endDate);
   };
@@ -357,6 +401,64 @@ export default function MissionForm({
                 id="reg-desc"
               />
             </div>
+
+            {formDates.length > 0 && (
+              <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-3" id="daily-food-options-container">
+                <div className="flex items-center gap-1.5 font-bold text-zinc-800 text-xs uppercase tracking-wider">
+                  <CalendarClock className="w-4 h-4 text-emerald-800" />
+                  Alimentação por Dia
+                </div>
+                <p className="text-[11px] text-zinc-500 leading-normal">
+                  Selecione os dias em que deseja <strong>zerar a alimentação</strong> (mantendo apenas o cálculo da Grat REP OP).
+                </p>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  {formDates.map((dateStr) => {
+                    const isZeroed = zeroFoodDates.includes(dateStr);
+                    const [year, month, day] = dateStr.split('-').map(Number);
+                    const dateObj = new Date(year, month - 1, day);
+                    const formattedDate = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', weekday: 'short' });
+                    
+                    return (
+                      <label
+                        key={dateStr}
+                        className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition-all ${
+                          isZeroed
+                            ? 'bg-amber-50/50 border-amber-200 text-amber-900'
+                            : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isZeroed}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setZeroFoodDates([...zeroFoodDates, dateStr]);
+                              } else {
+                                setZeroFoodDates(zeroFoodDates.filter((d) => d !== dateStr));
+                              }
+                            }}
+                            className="rounded text-emerald-850 focus:ring-emerald-800 h-4 w-4 border-zinc-300 cursor-pointer"
+                          />
+                          <span className="font-semibold capitalize font-sans">{formattedDate}</span>
+                        </div>
+                        <div className="text-[10px] font-mono font-medium">
+                          {isZeroed ? (
+                            <span className="text-amber-800 font-bold bg-amber-100/60 px-2 py-0.5 rounded-lg border border-amber-200">
+                              Alimentação Zerada + Grat REP OP
+                            </span>
+                          ) : (
+                            <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 font-semibold">
+                              Alimentação Integral
+                            </span>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Quick Helper Reference */}
             <div className="p-4 bg-zinc-50 border border-zinc-150 rounded-2xl text-xs space-y-2">
