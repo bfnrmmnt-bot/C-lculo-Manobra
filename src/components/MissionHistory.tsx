@@ -306,7 +306,9 @@ export default function MissionHistory({
               
               <div>
                 <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${
-                  selectedDayDetail.primaryType === 'N10'
+                  selectedDayDetail.hasMissions && selectedDayDetail.actualFoodRate === 0
+                    ? 'bg-amber-100 text-amber-900 border-amber-200'
+                    : selectedDayDetail.primaryType === 'N10'
                     ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
                     : selectedDayDetail.primaryType === 'N5'
                     ? 'bg-sky-100 text-sky-900 border-sky-200'
@@ -315,15 +317,19 @@ export default function MissionHistory({
                     : 'bg-zinc-100 text-zinc-500 border-zinc-200/40'
                 }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${
-                    selectedDayDetail.primaryType === 'N10'
+                    selectedDayDetail.hasMissions && selectedDayDetail.actualFoodRate === 0
+                      ? 'bg-amber-500'
+                      : selectedDayDetail.primaryType === 'N10'
                       ? 'bg-emerald-500'
                       : selectedDayDetail.primaryType === 'N5'
                       ? 'bg-sky-500'
                       : selectedDayDetail.primaryType === 'N1'
-                      ? 'bg-rose-500 animate-ping'
+                      ? 'bg-rose-500'
                       : 'bg-zinc-400'
                   }`} />
-                  {selectedDayDetail.primaryType === 'N10'
+                  {selectedDayDetail.hasMissions && selectedDayDetail.actualFoodRate === 0
+                    ? 'Alimentação Zerada'
+                    : selectedDayDetail.primaryType === 'N10'
                     ? 'N10 – Cota Alimentação Cheia'
                     : selectedDayDetail.primaryType === 'N5'
                     ? 'N5 – Meia Cota Alimentação'

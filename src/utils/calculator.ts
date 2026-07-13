@@ -286,7 +286,7 @@ export function getActiveQuotaAtDate(payments: DailyPayment[], refDateStr: strin
 
   const activeCount = payments.filter((p) => {
     const isInWindow = p.dateString >= thirtyDaysAgoStr && p.dateString <= refDateStr;
-    const isPremium = p.assignedType === 'N10' || p.assignedType === 'N5';
+    const isPremium = (p.assignedType === 'N10' || p.assignedType === 'N5') && p.rate > 0;
     return isInWindow && isPremium;
   }).length;
 

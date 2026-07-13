@@ -402,63 +402,7 @@ export default function MissionForm({
               />
             </div>
 
-            {formDates.length > 0 && (
-              <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-2xl space-y-3" id="daily-food-options-container">
-                <div className="flex items-center gap-1.5 font-bold text-zinc-800 text-xs uppercase tracking-wider">
-                  <CalendarClock className="w-4 h-4 text-emerald-800" />
-                  Alimentação por Dia
-                </div>
-                <p className="text-[11px] text-zinc-500 leading-normal">
-                  Selecione os dias em que deseja <strong>zerar a alimentação</strong> (mantendo apenas o cálculo da Grat REP OP).
-                </p>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                  {formDates.map((dateStr) => {
-                    const isZeroed = zeroFoodDates.includes(dateStr);
-                    const [year, month, day] = dateStr.split('-').map(Number);
-                    const dateObj = new Date(year, month - 1, day);
-                    const formattedDate = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', weekday: 'short' });
-                    
-                    return (
-                      <label
-                        key={dateStr}
-                        className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition-all ${
-                          isZeroed
-                            ? 'bg-amber-50/50 border-amber-200 text-amber-900'
-                            : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={isZeroed}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setZeroFoodDates([...zeroFoodDates, dateStr]);
-                              } else {
-                                setZeroFoodDates(zeroFoodDates.filter((d) => d !== dateStr));
-                              }
-                            }}
-                            className="rounded text-emerald-850 focus:ring-emerald-800 h-4 w-4 border-zinc-300 cursor-pointer"
-                          />
-                          <span className="font-semibold capitalize font-sans">{formattedDate}</span>
-                        </div>
-                        <div className="text-[10px] font-mono font-medium">
-                          {isZeroed ? (
-                            <span className="text-amber-800 font-bold bg-amber-100/60 px-2 py-0.5 rounded-lg border border-amber-200">
-                              Alimentação Zerada + Grat REP OP
-                            </span>
-                          ) : (
-                            <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 font-semibold">
-                              Alimentação Integral
-                            </span>
-                          )}
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+
 
 
 
