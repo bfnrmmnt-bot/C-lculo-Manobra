@@ -460,30 +460,7 @@ export default function MissionForm({
               </div>
             )}
 
-            {/* Quick Helper Reference */}
-            <div className="p-4 bg-zinc-50 border border-zinc-150 rounded-2xl text-xs space-y-2">
-              <div className="font-semibold text-zinc-700 flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-zinc-500" />
-                Guia Rápido de Regras de Alimentação de Missão:
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 font-mono text-[11px]">
-                <div className="flex flex-col p-2 bg-white rounded-lg border border-zinc-150">
-                  <span className="text-zinc-500 font-sans">Menos de 8 horas</span>
-                  <span className="font-bold text-zinc-950">Alimentação N1</span>
-                  <span className="text-emerald-700 font-bold">{formatBRL(RATES.N1)}/dia</span>
-                </div>
-                <div className="flex flex-col p-2 bg-white rounded-lg border border-zinc-150">
-                  <span className="text-zinc-500 font-sans">8h até 24 horas</span>
-                  <span className="font-bold text-zinc-950">Alimentação N5</span>
-                  <span className="text-emerald-700 font-bold">{formatBRL(RATES.N5)}/dia</span>
-                </div>
-                <div className="flex flex-col p-2 bg-white rounded-lg border border-zinc-150">
-                  <span className="text-zinc-500 font-sans">Mais de 24 horas</span>
-                  <span className="font-bold text-zinc-950">Alimentação N10</span>
-                  <span className="text-emerald-700 font-bold">{formatBRL(RATES.N10)}/dia</span>
-                </div>
-              </div>
-            </div>
+
 
             {editingMission ? (
               <div className="flex flex-col sm:flex-row gap-2">
