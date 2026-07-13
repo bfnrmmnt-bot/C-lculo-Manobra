@@ -78,15 +78,17 @@ export default function MissionHistory({
 
   // Calculate the sliding window occupation timeline for the last 30 consecutive days (chronological oldest to newest)
   const full30DaysChronological = (() => {
-    // Determine the anchor date. We prioritize June 2nd, 2026, or the maximum date of missions registered
-    let anchorDate = new Date(2026, 5, 2); // June 2, 2526 (0-indexed month)
+    // Determine the anchor date. We present the calendar up to the current day (today), or the maximum date of missions registered if it lies in the future
+    let anchorDate = new Date();
     
     if (allPayments.length > 0) {
       const dates = allPayments.map(p => p.dateString);
-      const maxDateStr = dates.reduce((max, d) => d > max ? d : max, '2026-06-02');
-      const maxDateObj = new Date(maxDateStr + 'T00:00:00');
-      if (maxDateObj > anchorDate) {
-        anchorDate = maxDateObj;
+      const maxDateStr = dates.reduce((max, d) => d > max ? d : max, '');
+      if (maxDateStr) {
+        const maxDateObj = new Date(maxDateStr + 'T12:00:00');
+        if (maxDateObj > anchorDate) {
+          anchorDate = maxDateObj;
+        }
       }
     }
 
