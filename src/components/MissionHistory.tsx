@@ -223,7 +223,10 @@ export default function MissionHistory({
               
               // Resolve styles based on food allowance type
               let colorClasses = '';
-              if (item.primaryType === 'N10') {
+              if (item.hasMissions && item.actualFoodRate === 0) {
+                // Zeroed is Yellow / Amarelo
+                colorClasses = 'bg-amber-100/95 text-amber-950 border-amber-300 hover:bg-amber-200 font-medium';
+              } else if (item.primaryType === 'N10') {
                 // N10 is Greenish / Esverdeado
                 colorClasses = 'bg-emerald-100/90 text-emerald-900 border-emerald-300 hover:bg-emerald-200';
               } else if (item.primaryType === 'N5') {
@@ -253,7 +256,9 @@ export default function MissionHistory({
                   <span className="leading-none">{parseInt(dayNum, 10)}</span>
                   {item.hasMissions && (
                     <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${
-                      item.primaryType === 'N10' 
+                      item.actualFoodRate === 0
+                        ? 'bg-amber-500'
+                        : item.primaryType === 'N10' 
                         ? 'bg-emerald-600' 
                         : item.primaryType === 'N5' 
                         ? 'bg-sky-600' 
@@ -278,6 +283,10 @@ export default function MissionHistory({
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded bg-rose-100 border border-rose-300 block" />
               <span className="text-zinc-600 font-medium">N1</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-amber-100 border border-amber-300 block" />
+              <span className="text-zinc-600 font-medium font-semibold text-amber-900">Alimentação Zerada</span>
             </div>
           </div>
         </div>
