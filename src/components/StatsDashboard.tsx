@@ -144,18 +144,6 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
               </table>
             </div>
           </div>
-
-          {limitedDaysCount30 > 0 ? (
-            <div className="pt-2 border-t border-zinc-100 flex items-center gap-1.5 text-[10px] text-rose-700 font-semibold bg-rose-50/40 px-2 py-1.5 rounded-lg border border-rose-100">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
-              <span>Houve {limitedDaysCount30} {limitedDaysCount30 === 1 ? 'dia que excedeu' : 'dias que excederam'} o limite de 10 cotas cheias neste período de 30 dias e {limitedDaysCount30 === 1 ? 'foi degradado' : 'foram degradados'} para N1.</span>
-            </div>
-          ) : (
-            <div className="pt-2 border-t border-zinc-100 flex items-center gap-1.5 text-[10px] text-zinc-500">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
-              <span>Todas as cotas de alimentação neste período de 30 dias estão em conformidade com o limite de 10 cotas.</span>
-            </div>
-          )}
         </div>
       </div>
     </div>
