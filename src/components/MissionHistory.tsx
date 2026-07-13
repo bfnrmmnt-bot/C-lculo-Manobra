@@ -475,17 +475,7 @@ export default function MissionHistory({
           </div>
 
           <div className="flex gap-2 w-full sm:w-auto self-stretch sm:self-auto shrink-0 justify-end">
-            {sortedCalculations.length > 0 ? (
-              <button
-                type="button"
-                onClick={onResetMissions}
-                className="py-1.5 px-3 border border-rose-250 text-rose-800 hover:bg-rose-50 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all w-full sm:w-auto justify-center cursor-pointer"
-                id="delete-all-missions-btn"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Limpar Tudo
-              </button>
-            ) : (
+            {sortedCalculations.length === 0 && (
               <button
                 type="button"
                 onClick={onLoadDefaults}
