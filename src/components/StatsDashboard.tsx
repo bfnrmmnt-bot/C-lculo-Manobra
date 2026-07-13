@@ -51,15 +51,15 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
     (p) => p.dateString >= thirtyDaysAgoStr && p.dateString <= todayStr
   );
 
-  const n10Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N10').length;
-  const n5Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N5').length;
-  const n1Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N1').length;
+  const n10Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N10' && p.rate > 0).length;
+  const n5Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N5' && p.rate > 0).length;
+  const n1Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N1' && p.rate > 0).length;
 
-  const n10Total = last30DaysPayments.filter(p => p.assignedType === 'N10').reduce((sum, p) => sum + p.rate, 0);
-  const n5Total = last30DaysPayments.filter(p => p.assignedType === 'N5').reduce((sum, p) => sum + p.rate, 0);
-  const n1Total = last30DaysPayments.filter(p => p.assignedType === 'N1').reduce((sum, p) => sum + p.rate, 0);
+  const n10Total = last30DaysPayments.filter(p => p.assignedType === 'N10' && p.rate > 0).reduce((sum, p) => sum + p.rate, 0);
+  const n5Total = last30DaysPayments.filter(p => p.assignedType === 'N5' && p.rate > 0).reduce((sum, p) => sum + p.rate, 0);
+  const n1Total = last30DaysPayments.filter(p => p.assignedType === 'N1' && p.rate > 0).reduce((sum, p) => sum + p.rate, 0);
 
-  const limitedDaysCount30 = last30DaysPayments.filter((p) => p.originalType !== p.assignedType).length;
+  const limitedDaysCount30 = last30DaysPayments.filter((p) => p.originalType !== p.assignedType && p.rate > 0).length;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" id="stats-container">

@@ -257,10 +257,10 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
   const totalManeuverEarnings = committedPayments.reduce((sum, p) => sum + (p.maneuverAllowance || 0), 0);
   const totalEarnings = totalFoodEarnings + totalManeuverEarnings;
 
-  const n10Count = committedPayments.filter((p) => p.assignedType === 'N10').length;
-  const n5Count = committedPayments.filter((p) => p.assignedType === 'N5').length;
-  const n1Count = committedPayments.filter((p) => p.assignedType === 'N1').length;
-  const limitedDaysCount = committedPayments.filter((p) => p.originalType !== p.assignedType).length;
+  const n10Count = committedPayments.filter((p) => p.assignedType === 'N10' && p.rate > 0).length;
+  const n5Count = committedPayments.filter((p) => p.assignedType === 'N5' && p.rate > 0).length;
+  const n1Count = committedPayments.filter((p) => p.assignedType === 'N1' && p.rate > 0).length;
+  const limitedDaysCount = committedPayments.filter((p) => p.originalType !== p.assignedType && p.rate > 0).length;
 
   return {
     allPayments: committedPayments,
