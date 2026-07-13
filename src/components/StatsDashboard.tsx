@@ -23,10 +23,43 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
     }).format(truncatedValue);
   };
 
-  // Calculate correct actual totals for each category to match the zeroed foods
-  const n10Total = allPayments.filter(p => p.assignedType === 'N10').reduce((sum, p) => sum + p.rate, 0);
-  const n5Total = allPayments.filter(p => p.assignedType === 'N5').reduce((sum, p) => sum + p.rate, 0);
-  const n1Total = allPayments.filter(p => p.assignedType === 'N1').reduce((sum, p) => sum + p.rate, 0);
+  // Calculate date range for the last 30 days from the current date the app is used backwards
+  const today = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(today.getDate() - 29);
+
+  const formatDateStr = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatDateToDDMM = (dateStr: string) => {
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  const todayStr = formatDateStr(today);
+  const thirtyDaysAgoStr = formatDateStr(thirtyDaysAgo);
+
+  const formattedToday = formatDateToDDMM(todayStr);
+  const formattedThirtyAgo = formatDateToDDMM(thirtyDaysAgoStr);
+
+  // Filter payments to only include the last 30 days starting from today backwards
+  const last30DaysPayments = allPayments.filter(
+    (p) => p.dateString >= thirtyDaysAgoStr && p.dateString <= todayStr
+  );
+
+  const n10Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N10').length;
+  const n5Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N5').length;
+  const n1Count30 = last30DaysPayments.filter((p) => p.assignedType === 'N1').length;
+
+  const n10Total = last30DaysPayments.filter(p => p.assignedType === 'N10').reduce((sum, p) => sum + p.rate, 0);
+  const n5Total = last30DaysPayments.filter(p => p.assignedType === 'N5').reduce((sum, p) => sum + p.rate, 0);
+  const n1Total = last30DaysPayments.filter(p => p.assignedType === 'N1').reduce((sum, p) => sum + p.rate, 0);
+
+  const limitedDaysCount30 = last30DaysPayments.filter((p) => p.originalType !== p.assignedType).length;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" id="stats-container">
@@ -57,7 +90,14 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
       <div className="lg:col-span-8 bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between" id="stat-detailed-allowances-card">
         <div className="flex flex-col h-full justify-between gap-4">
           <div>
-            <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Distribuição das Cotas de Alimentação</h4>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+              <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                Distribuição das Cotas de Alimentação
+              </h4>
+              <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                Últimos 30 dias ({formattedThirtyAgo} a {formattedToday})
+              </span>
+            </div>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -76,7 +116,7 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
                       <span className="font-bold text-zinc-800">N10</span>
                       <span className="text-[10px] text-zinc-400 font-normal hidden sm:inline">(Cota Cheia)</span>
                     </td>
-                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n10Count} {n10Count === 1 ? 'dia' : 'dias'}</td>
+                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n10Count30} {n10Count30 === 1 ? 'dia' : 'dias'}</td>
                     <td className="py-3 text-right font-mono text-zinc-500">{formatBRL(RATES.N10)}</td>
                     <td className="py-3 text-right font-mono font-bold text-emerald-800">{formatBRL(n10Total)}</td>
                   </tr>
@@ -86,7 +126,7 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
                       <span className="font-bold text-zinc-800">N5</span>
                       <span className="text-[10px] text-zinc-400 font-normal hidden sm:inline">(Meia Cota)</span>
                     </td>
-                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n5Count} {n5Count === 1 ? 'dia' : 'dias'}</td>
+                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n5Count30} {n5Count30 === 1 ? 'dia' : 'dias'}</td>
                     <td className="py-3 text-right font-mono text-zinc-500">{formatBRL(RATES.N5)}</td>
                     <td className="py-3 text-right font-mono font-bold text-sky-800">{formatBRL(n5Total)}</td>
                   </tr>
@@ -96,7 +136,7 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
                       <span className="font-bold text-zinc-800">N1</span>
                       <span className="text-[10px] text-zinc-400 font-normal hidden sm:inline">(Fração / Degradada)</span>
                     </td>
-                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n1Count} {n1Count === 1 ? 'dia' : 'dias'}</td>
+                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n1Count30} {n1Count30 === 1 ? 'dia' : 'dias'}</td>
                     <td className="py-3 text-right font-mono text-zinc-500">{formatBRL(RATES.N1)}</td>
                     <td className="py-3 text-right font-mono font-bold text-rose-800">{formatBRL(n1Total)}</td>
                   </tr>
@@ -105,15 +145,15 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
             </div>
           </div>
 
-          {limitedDaysCount > 0 ? (
+          {limitedDaysCount30 > 0 ? (
             <div className="pt-2 border-t border-zinc-100 flex items-center gap-1.5 text-[10px] text-rose-700 font-semibold bg-rose-50/40 px-2 py-1.5 rounded-lg border border-rose-100">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
-              <span>Houve {limitedDaysCount} {limitedDaysCount === 1 ? 'dia que excedeu' : 'dias que excederam'} o limite de 10 cotas cheias nos últimos 30 dias e {limitedDaysCount === 1 ? 'foi degradado' : 'foram degradados'} para N1.</span>
+              <span>Houve {limitedDaysCount30} {limitedDaysCount30 === 1 ? 'dia que excedeu' : 'dias que excederam'} o limite de 10 cotas cheias neste período de 30 dias e {limitedDaysCount30 === 1 ? 'foi degradado' : 'foram degradados'} para N1.</span>
             </div>
           ) : (
             <div className="pt-2 border-t border-zinc-100 flex items-center gap-1.5 text-[10px] text-zinc-500">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
-              <span>Todas as cotas de alimentação estão em conformidade com o limite de 10 cotas nos últimos 30 dias.</span>
+              <span>Todas as cotas de alimentação neste período de 30 dias estão em conformidade com o limite de 10 cotas.</span>
             </div>
           )}
         </div>
