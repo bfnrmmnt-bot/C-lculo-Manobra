@@ -80,7 +80,7 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
             <span className="font-mono font-semibold text-emerald-50">{formatBRL(totalFoodEarnings)}</span>
           </div>
           <div className="flex justify-between border-t border-emerald-900/65 pt-1">
-            <span className="text-emerald-300">GRAT REP OP (-27,45% IR):</span>
+            <span className="text-emerald-300">GRAT REP VI (-27,45% IR):</span>
             <span className="font-mono font-semibold text-amber-400">{formatBRL(totalManeuverEarnings)}</span>
           </div>
         </div>

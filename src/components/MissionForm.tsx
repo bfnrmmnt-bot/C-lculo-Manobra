@@ -220,7 +220,7 @@ export default function MissionForm({
   const simRankObj = ranks.find(r => r.id === simRankId) || ranks.find(r => r.id === 'terceiro_sargento') || ranks[1] || ranks[0];
   const simDailyAdditionalValue = simRankObj.soldo * 0.02 * 0.7255;
 
-  // Inverse calculation helper based on food rate + Grat REP OP (with 27.45% IR discount)
+  // Inverse calculation helper based on food rate + Grat REP VI (with 27.45% IR discount)
   const parsedPaidValue = parseFloat(paidValueInput.replace(',', '.')) || 0;
 
   const getInverseCalculation = (val: number, additionalValue: number) => {
@@ -504,7 +504,7 @@ export default function MissionForm({
                     <div className="flex gap-2 text-[10px] text-zinc-500 mt-1">
                       <span>Alimentação: <strong>{formatBRL(simResult.estimatedFoodTotal)}</strong></span>
                       <span>•</span>
-                      <span>GRAT REP OP com IR (-27,45%): <strong>{formatBRL(simResult.estimatedManeuverTotal)}</strong></span>
+                      <span>GRAT REP VI com IR (-27,45%): <strong>{formatBRL(simResult.estimatedManeuverTotal)}</strong></span>
                     </div>
                   </div>
 
@@ -554,7 +554,7 @@ export default function MissionForm({
                           </div>
                           <div className="flex justify-between pl-2 text-[10px] text-zinc-500 italic">
                             <span>Alimentação: {formatBRL(p.rate)}</span>
-                            <span>GRAT REP OP (Líquido): {formatBRL(p.maneuverAllowance)}</span>
+                            <span>GRAT REP VI (Líquido): {formatBRL(p.maneuverAllowance)}</span>
                           </div>
                         </div>
                       );
@@ -568,7 +568,7 @@ export default function MissionForm({
                   <div className="space-y-1">
                     <p className="font-semibold">Como funciona o cálculo deslizante?</p>
                     <p className="text-amber-905 text-amber-900 text-[11px] leading-relaxed">
-                      Este simulador assume que você registrará esta missão. Ele temporariamente calcula os 30 dias antecedentes de cada dia simulado. Caso as cotas de alimentação ultrapassem 10, o sistema degrada o pagamento daquele dia específico de N10 (R$ 135) para N1 (R$ 13,50) para respeitar o limite legal, mas a GRAT REP OP de {formatBRL(simDailyAdditionalValue)} (com 27,45% IR deduzido) mantém-se inalterada.
+                      Este simulador assume que você registrará esta missão. Ele temporariamente calcula os 30 dias antecedentes de cada dia simulado. Caso as cotas de alimentação ultrapassem 10, o sistema degrada o pagamento daquele dia específico de N10 (R$ 135) para N1 (R$ 13,50) para respeitar o limite legal, mas a GRAT REP VI de {formatBRL(simDailyAdditionalValue)} (com 27,45% IR deduzido) mantém-se inalterada.
                     </p>
                   </div>
                 </div>
@@ -592,7 +592,7 @@ export default function MissionForm({
                 </h4>
               </div>
               <p className="text-xs text-zinc-500 leading-normal">
-                Utilize estas ferramentas para decompor de forma precisa valores recebidos de volta em cotas ou estimar valores diretamente por quantidade, considerando a Gratificação de Representação de Operação (Grat REP OP) de 2% com o desconto de Imposto de Renda (27,45% de IR).
+                Utilize estas ferramentas para decompor de forma precisa valores recebidos de volta em cotas ou estimar valores diretamente por quantidade, considerando a Gratificação de Representação de Operação (Grat REP VI) de 2% com o desconto de Imposto de Renda (27,45% de IR).
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -603,7 +603,7 @@ export default function MissionForm({
                       1. Decompor Valor Recebido (Líquido)
                     </h5>
                     <p className="text-[11px] text-zinc-500 leading-snug mb-3">
-                      Insira o valor líquido total recebido para deduzir quais cotas (alimentação + Grat REP OP com IR) compõem este pagamento.
+                      Insira o valor líquido total recebido para deduzir quais cotas (alimentação + Grat REP VI com IR) compõem este pagamento.
                     </p>
                     
                     <div className="mb-3 bg-white p-2.5 rounded-xl border border-zinc-150 text-[10.5px] text-zinc-600 space-y-1">
@@ -611,7 +611,7 @@ export default function MissionForm({
                         Posto/Graduação: <strong className="text-emerald-850 font-semibold">{simRankObj.name}</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span>Grat REP OP líquida (2% - 27,45% IR):</span>
+                        <span>Grat REP VI líquida (2% - 27,45% IR):</span>
                         <strong className="font-mono text-zinc-700">{formatBRL(simDailyAdditionalValue)}/dia</strong>
                       </div>
                     </div>
@@ -643,7 +643,7 @@ export default function MissionForm({
                           </span>
                         </div>
                         <span className="text-[9.5px] text-zinc-400 ml-4.5 font-mono">
-                          Alimentação: {formatBRL(135.00)} + Grat REP OP: {formatBRL(simDailyAdditionalValue)}
+                          Alimentação: {formatBRL(135.00)} + Grat REP VI: {formatBRL(simDailyAdditionalValue)}
                         </span>
                       </div>
 
@@ -659,7 +659,7 @@ export default function MissionForm({
                           </span>
                         </div>
                         <span className="text-[9.5px] text-zinc-400 ml-4.5 font-mono">
-                          Alimentação: {formatBRL(67.50)} + Grat REP OP: {formatBRL(simDailyAdditionalValue)}
+                          Alimentação: {formatBRL(67.50)} + Grat REP VI: {formatBRL(simDailyAdditionalValue)}
                         </span>
                       </div>
 
@@ -675,7 +675,7 @@ export default function MissionForm({
                           </span>
                         </div>
                         <span className="text-[9.5px] text-zinc-400 ml-4.5 font-mono">
-                          Alimentação: {formatBRL(13.50)} + Grat REP OP: {formatBRL(simDailyAdditionalValue)}
+                          Alimentação: {formatBRL(13.50)} + Grat REP VI: {formatBRL(simDailyAdditionalValue)}
                         </span>
                       </div>
                     </div>
@@ -688,7 +688,7 @@ export default function MissionForm({
                         <span className="font-mono">{formatBRL(inverseResult.totalFood)}</span>
                       </div>
                       <div className="flex justify-between text-zinc-600 font-medium border-b border-zinc-100 pb-1">
-                        <span>Total Grat. REP OP líquida:</span>
+                        <span>Total Grat. REP VI líquida:</span>
                         <span className="font-mono">{formatBRL(inverseResult.totalManeuver)}</span>
                       </div>
                       <div className="flex justify-between font-bold text-zinc-800 pt-0.5 text-xs">
@@ -720,7 +720,7 @@ export default function MissionForm({
                         Posto/Graduação: <strong className="text-emerald-850 font-semibold">{simRankObj.name}</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span>Grat REP OP líquida (2% - 27,45% IR):</span>
+                        <span>Grat REP VI líquida (2% - 27,45% IR):</span>
                         <strong className="font-mono text-zinc-700">{formatBRL(simDailyAdditionalValue)}/dia</strong>
                       </div>
                     </div>

@@ -570,7 +570,7 @@ export default function MissionHistory({
                             <strong className="font-mono text-zinc-700 font-semibold">{formatBRL(calc.foodPay)}</strong>
                           </div>
                           <div className="flex justify-between sm:justify-end gap-1.5">
-                            <span className="text-zinc-400">GRAT REP OP:</span>
+                            <span className="text-zinc-400">GRAT REP VI:</span>
                             <strong className="font-mono text-zinc-700 font-semibold">{formatBRL(brutoManeuverPay)}</strong>
                           </div>
                           <div className="flex justify-between sm:justify-end gap-1.5 text-rose-600 font-semibold">
@@ -689,7 +689,7 @@ export default function MissionHistory({
 
                               <div className="flex justify-between pl-2 text-[10px] text-zinc-500 italic">
                                 <span>Alimentação de Missão: {formatBRL(p.rate)} {p.rate === 0 && <span className="text-amber-800 font-bold font-sans not-italic ml-1">(Zerada pelo Usuário)</span>}</span>
-                                <span>GRAT REP OP (Líquido -27,45% IR): {formatBRL(p.maneuverAllowance || 0)}</span>
+                                <span>GRAT REP VI (Líquido -27,45% IR): {formatBRL(p.maneuverAllowance || 0)}</span>
                               </div>
                             </div>
                           );
@@ -697,7 +697,7 @@ export default function MissionHistory({
                       </div>
 
                       <div className="p-3 bg-zinc-100 rounded-xl text-[10.5px] text-zinc-500 italic mt-2">
-                        * O cálculo utiliza data de início e hora para alocar em períodos de 24h consecutivas. Se nas últimas 30 datas antes do processamento o militar exceder 10 cotas cheias de alimentação (N10/N5), o valor de alimentação é adjusted de R$ 135,00 para o valor residual de N1 (R$ 13,50) para proteger a quota, enquanto a GRAT REP OP (com desconto de 27,45% do imposto de renda) se mantém inalterada por dia de manobra.
+                        * O cálculo utiliza data de início e hora para alocar em períodos de 24h consecutivas. Se nas últimas 30 datas antes do processamento o militar exceder 10 cotas cheias de alimentação (N10/N5), o valor de alimentação é adjusted de R$ 135,00 para o valor residual de N1 (R$ 13,50) para proteger a quota, enquanto a GRAT REP VI (com desconto de 27,45% do imposto de renda) se mantém inalterada por dia de manobra.
                       </div>
                     </div>
                   )}
