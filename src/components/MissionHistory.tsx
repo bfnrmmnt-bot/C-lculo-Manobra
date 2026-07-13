@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Mission, DailyPayment, CalculationSummary } from '../types';
 import { getActiveQuotaAtDate, formatDateString } from '../utils/calculator';
-import { Trash2, AlertTriangle, MapPin, Calendar, Clock, RotateCcw, AlertCircle, Sparkles, ChevronDown, ChevronUp, BarChart4, Pencil, Download, Check, X } from 'lucide-react';
+import { Trash2, AlertTriangle, MapPin, Calendar, Clock, RotateCcw, AlertCircle, Sparkles, ChevronDown, ChevronUp, BarChart4, Pencil, Download, Check, X, CalendarClock } from 'lucide-react';
 
 interface MissionHistoryProps {
   summary: CalculationSummary;
+  missions: Mission[];
+  onUpdateMission: (mission: Mission) => void;
   onDeleteMission: (id: string) => void;
   onResetMissions: () => void;
   onLoadDefaults: () => void;
@@ -16,7 +18,9 @@ interface MissionHistoryProps {
 
 export default function MissionHistory({ 
   summary, 
-  onDeleteMission, 
+  missions,
+  onUpdateMission,
+  onDeleteMission,
   onResetMissions, 
   onLoadDefaults,
   onEditMission,
@@ -124,6 +128,14 @@ export default function MissionHistory({
   // Resolve active selected date (default to latest day if none is clicked)
   const activeSelectedDateStr = selectedDateStr || (full30DaysChronological.length > 0 ? full30DaysChronological[full30DaysChronological.length - 1].dateStr : null);
   const selectedDayDetail = full30DaysChronological.find(item => item.dateStr === activeSelectedDateStr);
+
+  const paymentOnSelectedDay = activeSelectedDateStr
+    ? allPayments.find(p => p.dateString === activeSelectedDateStr)
+    : null;
+
+  const associatedMission = paymentOnSelectedDay && missions
+    ? missions.find(m => m.id === paymentOnSelectedDay.missionId)
+    : null;
 
   const getCalendarHeaderSpan = () => {
     if (full30DaysChronological.length === 0) return 'Últimos 30 Dias';
@@ -358,6 +370,76 @@ export default function MissionHistory({
                 </p>
               </div>
             </div>
+
+            {associatedMission && activeSelectedDateStr && (
+              <div className="mt-4 pt-4 border-t border-zinc-200" id="daily-allowance-override-block">
+                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block mb-2 flex items-center gap-1">
+                  <CalendarClock className="w-3.5 h-3.5 text-emerald-800" />
+                  Ajustar Tipo de Alimentação para este Dia ({selectedDayDetail.formattedDate})
+                </span>
+                <p className="text-[11px] text-zinc-500 mb-3 leading-relaxed">
+                  Altere a cota deste dia manualmente. Ao selecionar um tipo, as regras de degradação e limites automáticos serão substituídos para este dia de missão.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'Automático (Auto)', value: 'AUTO', color: 'bg-zinc-100 hover:bg-zinc-200 border-zinc-300 text-zinc-700' },
+                    { label: 'Forçar N10 (R$ 135,00)', value: 'N10', color: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-300 text-emerald-800' },
+                    { label: 'Forçar N5 (R$ 67,50)', value: 'N5', color: 'bg-sky-50 hover:bg-sky-100 border-sky-300 text-sky-800' },
+                    { label: 'Forçar N1 (R$ 13,50)', value: 'N1', color: 'bg-rose-50 hover:bg-rose-100 border-rose-300 text-rose-800' },
+                    { label: 'Zerar Alimentação', value: 'ZERO', color: 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-950' },
+                  ].map((opt) => {
+                    const currentOverride = associatedMission.customAllowances?.[activeSelectedDateStr] || 
+                      (associatedMission.zeroFoodDates?.includes(activeSelectedDateStr) ? 'ZERO' : 'AUTO');
+                    
+                    const isActive = currentOverride === opt.value;
+                    
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          const updatedCustomAllowances = { ...(associatedMission.customAllowances || {}) };
+                          const updatedZeroFoodDates = [...(associatedMission.zeroFoodDates || [])];
+                          
+                          if (opt.value === 'AUTO') {
+                            delete updatedCustomAllowances[activeSelectedDateStr];
+                            const zeroIndex = updatedZeroFoodDates.indexOf(activeSelectedDateStr);
+                            if (zeroIndex > -1) {
+                              updatedZeroFoodDates.splice(zeroIndex, 1);
+                            }
+                          } else if (opt.value === 'ZERO') {
+                            updatedCustomAllowances[activeSelectedDateStr] = 'ZERO';
+                            if (!updatedZeroFoodDates.includes(activeSelectedDateStr)) {
+                              updatedZeroFoodDates.push(activeSelectedDateStr);
+                            }
+                          } else {
+                            updatedCustomAllowances[activeSelectedDateStr] = opt.value as 'N10' | 'N5' | 'N1';
+                            const zeroIndex = updatedZeroFoodDates.indexOf(activeSelectedDateStr);
+                            if (zeroIndex > -1) {
+                              updatedZeroFoodDates.splice(zeroIndex, 1);
+                            }
+                          }
+                          
+                          onUpdateMission({
+                            ...associatedMission,
+                            customAllowances: updatedCustomAllowances,
+                            zeroFoodDates: updatedZeroFoodDates
+                          });
+                        }}
+                        className={`text-[11px] px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
+                          isActive 
+                            ? 'ring-2 ring-emerald-800 bg-emerald-950 text-white border-emerald-950 scale-102 shadow-xs'
+                            : opt.color
+                        }`}
+                        id={`override-btn-${opt.value}`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

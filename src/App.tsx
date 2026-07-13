@@ -443,6 +443,8 @@ export default function App() {
           <div className="lg:col-span-7">
             <MissionHistory
               summary={calculationSummary}
+              missions={missions}
+              onUpdateMission={handleUpdateMission}
               onDeleteMission={handleDeleteMission}
               onResetMissions={handleResetMissions}
               onLoadDefaults={handleLoadDefaults}

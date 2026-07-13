@@ -23,6 +23,7 @@ export interface Mission {
   rankId?: string; // Associated rank for this specific mission
   received?: boolean;
   zeroFoodDates?: string[]; // Array of YYYY-MM-DD dates where food allowance is zeroed
+  customAllowances?: Record<string, 'N10' | 'N5' | 'N1' | 'ZERO'>; // Custom allowance override per date (YYYY-MM-DD)
 }
 
 export type PayType = 'N10' | 'N5' | 'N1';

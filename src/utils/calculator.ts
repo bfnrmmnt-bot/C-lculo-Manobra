@@ -57,6 +57,7 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
     missionTitle: string;
     rankId: string;
     isFoodZeroed?: boolean;
+    customOverrideType?: 'N10' | 'N5' | 'N1' | 'ZERO';
   }
 
   const allCandidates: Candidate[] = [];
@@ -76,24 +77,28 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
     if (durationHours < 8) {
       // Receives N1 pay (less than 8 hours) on the start date
       const dateString = formatDateString(startObj);
+      const customOverrideType = mission.customAllowances?.[dateString];
       allCandidates.push({
         dateString,
         originalType: 'N1',
         missionId: mission.id,
         missionTitle: mission.title,
         rankId: activeRankId,
-        isFoodZeroed: mission.zeroFoodDates?.includes(dateString) || false,
+        isFoodZeroed: customOverrideType === 'ZERO' || mission.zeroFoodDates?.includes(dateString) || false,
+        customOverrideType,
       });
     } else if (durationHours >= 8 && durationHours < 24) {
       // Receives N5 pay (between 8 and 24 hours) on the start date
       const dateString = formatDateString(startObj);
+      const customOverrideType = mission.customAllowances?.[dateString];
       allCandidates.push({
         dateString,
         originalType: 'N5',
         missionId: mission.id,
         missionTitle: mission.title,
         rankId: activeRankId,
-        isFoodZeroed: mission.zeroFoodDates?.includes(dateString) || false,
+        isFoodZeroed: customOverrideType === 'ZERO' || mission.zeroFoodDates?.includes(dateString) || false,
+        customOverrideType,
       });
     } else {
       // Receives N10 pay for full 24-hour blocks
@@ -115,13 +120,15 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
           }
         }
 
+        const customOverrideType = mission.customAllowances?.[dateStr];
         allCandidates.push({
           dateString: dateStr,
           originalType,
           missionId: mission.id,
           missionTitle: mission.title,
           rankId: activeRankId,
-          isFoodZeroed: mission.zeroFoodDates?.includes(dateStr) || false,
+          isFoodZeroed: customOverrideType === 'ZERO' || mission.zeroFoodDates?.includes(dateStr) || false,
+          customOverrideType,
         });
       });
     }
@@ -138,6 +145,26 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
     const rank = customRanks.find(r => r.id === candidate.rankId) || customRanks.find(r => r.id === 'terceiro_sargento')!;
     const maneuverAllowance = rank.soldo * 0.02 * 0.7255; // 2% base pay discounted by 27.45% Income Tax (IR)
     
+    // Explicit daily override (N10, N5, N1, ZERO)
+    if (candidate.customOverrideType) {
+      const overType = candidate.customOverrideType;
+      const rate = overType === 'ZERO' ? 0 : RATES[overType];
+      const assignedType = overType === 'ZERO' ? candidate.originalType : overType;
+      
+      committedPayments.push({
+        dateString: candidate.dateString,
+        originalType: candidate.originalType,
+        assignedType,
+        rate,
+        missionId: candidate.missionId,
+        missionTitle: candidate.missionTitle,
+        rankId: candidate.rankId,
+        maneuverAllowance,
+        totalDayValue: rate + maneuverAllowance,
+      });
+      return;
+    }
+
     if (candidate.originalType === 'N1') {
       // N1 is never capped, so it's directly assigned N1
       const rate = candidate.isFoodZeroed ? 0 : RATES.N1;
