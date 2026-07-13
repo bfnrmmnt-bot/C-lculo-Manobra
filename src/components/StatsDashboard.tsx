@@ -8,7 +8,7 @@ interface StatsDashboardProps {
 }
 
 export default function StatsDashboard({ summary }: StatsDashboardProps) {
-  const { totalEarnings, totalFoodEarnings, totalManeuverEarnings, n10Count, n5Count, n1Count, limitedDaysCount, missionCalculations } = summary;
+  const { totalEarnings, totalFoodEarnings, totalManeuverEarnings, n10Count, n5Count, n1Count, limitedDaysCount, missionCalculations, allPayments } = summary;
 
   // Formatting currency helper
   const formatBRL = (value: number) => {
@@ -23,10 +23,15 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
     }).format(truncatedValue);
   };
 
+  // Calculate correct actual totals for each category to match the zeroed foods
+  const n10Total = allPayments.filter(p => p.assignedType === 'N10').reduce((sum, p) => sum + p.rate, 0);
+  const n5Total = allPayments.filter(p => p.assignedType === 'N5').reduce((sum, p) => sum + p.rate, 0);
+  const n1Total = allPayments.filter(p => p.assignedType === 'N1').reduce((sum, p) => sum + p.rate, 0);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="stats-container">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4" id="stats-container">
       {/* Total Earnings Card */}
-      <div className="bg-emerald-950 text-white rounded-2xl p-6 shadow-sm border border-emerald-900 transition-all hover:shadow-md flex flex-col justify-between" id="stat-total-card">
+      <div className="lg:col-span-4 bg-emerald-950 text-white rounded-2xl p-6 shadow-sm border border-emerald-900 transition-all hover:shadow-md flex flex-col justify-between" id="stat-total-card">
         <div className="flex justify-between items-start">
           <div>
             <p className="text-emerald-350 text-xs font-semibold uppercase tracking-wider">Rendimento Acumulado</p>
@@ -48,65 +53,68 @@ export default function StatsDashboard({ summary }: StatsDashboardProps) {
         </div>
       </div>
 
-      {/* Quotas / Premium Days Card */}
-      <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between" id="stat-premium-card">
-        <div className="flex justify-between items-start">
+      {/* Unified Quotas Detail Card */}
+      <div className="lg:col-span-8 bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between" id="stat-detailed-allowances-card">
+        <div className="flex flex-col h-full justify-between gap-4">
           <div>
-            <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Cotas N10 Pagas</p>
-            <h3 className="text-3xl font-bold text-zinc-900 mt-1 font-mono">
-              {n10Count} <span className="text-xs text-zinc-400 font-normal">dias</span>
-            </h3>
+            <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Distribuição das Cotas de Alimentação</h4>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-zinc-150 text-[10px] text-zinc-400 font-bold uppercase tracking-wider">
+                    <th className="py-2 font-semibold">Cota</th>
+                    <th className="py-2 font-semibold text-center">Dias</th>
+                    <th className="py-2 font-semibold text-right">Valor Unitário</th>
+                    <th className="py-2 font-semibold text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 font-medium">
+                  <tr className="hover:bg-zinc-50/50 transition-colors">
+                    <td className="py-3 flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded bg-emerald-500 block" />
+                      <span className="font-bold text-zinc-800">N10</span>
+                      <span className="text-[10px] text-zinc-400 font-normal hidden sm:inline">(Cota Cheia)</span>
+                    </td>
+                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n10Count} {n10Count === 1 ? 'dia' : 'dias'}</td>
+                    <td className="py-3 text-right font-mono text-zinc-500">{formatBRL(RATES.N10)}</td>
+                    <td className="py-3 text-right font-mono font-bold text-emerald-800">{formatBRL(n10Total)}</td>
+                  </tr>
+                  <tr className="hover:bg-zinc-50/50 transition-colors">
+                    <td className="py-3 flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded bg-sky-500 block" />
+                      <span className="font-bold text-zinc-800">N5</span>
+                      <span className="text-[10px] text-zinc-400 font-normal hidden sm:inline">(Meia Cota)</span>
+                    </td>
+                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n5Count} {n5Count === 1 ? 'dia' : 'dias'}</td>
+                    <td className="py-3 text-right font-mono text-zinc-500">{formatBRL(RATES.N5)}</td>
+                    <td className="py-3 text-right font-mono font-bold text-sky-800">{formatBRL(n5Total)}</td>
+                  </tr>
+                  <tr className="hover:bg-zinc-50/50 transition-colors">
+                    <td className="py-3 flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded bg-rose-500 block" />
+                      <span className="font-bold text-zinc-800">N1</span>
+                      <span className="text-[10px] text-zinc-400 font-normal hidden sm:inline">(Fração / Degradada)</span>
+                    </td>
+                    <td className="py-3 text-center font-mono text-zinc-900 font-bold">{n1Count} {n1Count === 1 ? 'dia' : 'dias'}</td>
+                    <td className="py-3 text-right font-mono text-zinc-500">{formatBRL(RATES.N1)}</td>
+                    <td className="py-3 text-right font-mono font-bold text-rose-800">{formatBRL(n1Total)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
-            <Award className="w-6 h-6" />
-          </div>
-        </div>
-        <div className="mt-4 pt-4 border-t border-zinc-100 flex justify-between items-center text-xs text-zinc-500">
-          <span>Máximo {RATES.N10}/dia de alimentação</span>
-          <span className="font-semibold text-emerald-700 font-mono">{formatBRL(n10Count * RATES.N10)}</span>
-        </div>
-      </div>
 
-      {/* Partial / N5 count card */}
-      <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between" id="stat-n5-card">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Cotas N5 Pagas</p>
-            <h3 className="text-3xl font-bold text-zinc-900 mt-1 font-mono">
-              {n5Count} <span className="text-xs text-zinc-400 font-normal">dias</span>
-            </h3>
-          </div>
-          <div className="p-3 bg-sky-50 rounded-xl text-sky-600">
-            <Percent className="w-6 h-6" />
-          </div>
-        </div>
-        <div className="mt-4 pt-4 border-t border-zinc-100 flex justify-between items-center text-xs text-zinc-500">
-          <span>Frações {RATES.N5}/dia de alimentação</span>
-          <span className="font-semibold text-sky-700 font-mono">{formatBRL(n5Count * RATES.N5)}</span>
-        </div>
-      </div>
-
-      {/* Capped / Degraded Days count card */}
-      <div className={`rounded-2xl p-6 shadow-xs flex flex-col justify-between border transition-all ${
-        limitedDaysCount > 0 
-          ? 'bg-rose-50/50 border-rose-200 text-rose-900' 
-          : 'bg-zinc-50/50 border-zinc-200 text-zinc-900'
-      }`} id="stat-degraded-card">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Atingiram Limite (Teto)</p>
-            <h3 className="text-3xl font-bold mt-1 font-mono">
-              {limitedDaysCount} <span className="text-xs text-zinc-400 font-normal">dias</span>
-            </h3>
-          </div>
-          <div className={`p-3 rounded-xl ${limitedDaysCount > 0 ? 'bg-rose-100 text-rose-600' : 'bg-zinc-100 text-zinc-600'}`}>
-            <Banknote className="w-6 h-6" />
-          </div>
-        </div>
-        <div className="mt-4 pt-4 border-t border-zinc-150 flex justify-between items-center text-xs text-zinc-500">
-          <span>Degradados para N1 ({formatBRL(RATES.N1)})</span>
-          {limitedDaysCount > 0 && (
-            <span className="text-rose-600 font-semibold font-mono">Poupou quota residual!</span>
+          {limitedDaysCount > 0 ? (
+            <div className="pt-2 border-t border-zinc-100 flex items-center gap-1.5 text-[10px] text-rose-700 font-semibold bg-rose-50/40 px-2 py-1.5 rounded-lg border border-rose-100">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+              <span>Houve {limitedDaysCount} {limitedDaysCount === 1 ? 'dia que excedeu' : 'dias que excederam'} o limite de 10 cotas cheias nos últimos 30 dias e {limitedDaysCount === 1 ? 'foi degradado' : 'foram degradados'} para N1.</span>
+            </div>
+          ) : (
+            <div className="pt-2 border-t border-zinc-100 flex items-center gap-1.5 text-[10px] text-zinc-500">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
+              <span>Todas as cotas de alimentação estão em conformidade com o limite de 10 cotas nos últimos 30 dias.</span>
+            </div>
           )}
         </div>
       </div>
