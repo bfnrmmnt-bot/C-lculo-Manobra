@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Calculadora Manobra</string>
+    <string name="title_activity_main">Calculadora Manobra</string>
+    <string name="package_name">com.calculadoramanobra.app</string>
+    <string name="custom_url_scheme">com.calculadoramanobra.app</string>
+</resources>
