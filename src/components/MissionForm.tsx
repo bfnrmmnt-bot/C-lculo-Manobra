@@ -31,6 +31,8 @@ export default function MissionForm({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [osPag, setOsPag] = useState('');
+  const [osDme, setOsDme] = useState('');
   const [rankId, setRankId] = useState(selectedRankId);
   const [zeroFoodDates, setZeroFoodDates] = useState<string[]>([]);
   
@@ -65,6 +67,8 @@ export default function MissionForm({
       setTitle(editingMission.title);
       setDescription(editingMission.description || '');
       setLocation(editingMission.location || '');
+      setOsPag(editingMission.osPag || '');
+      setOsDme(editingMission.osDme || '');
       setStartDate(editingMission.startDate);
       setEndDate(editingMission.endDate);
       setRankId(editingMission.rankId);
@@ -74,6 +78,8 @@ export default function MissionForm({
       setTitle('');
       setDescription('');
       setLocation('');
+      setOsPag('');
+      setOsDme('');
       setStartDate('2026-06-01T08:00');
       setEndDate('2026-06-02T12:00');
       setZeroFoodDates([]);
@@ -162,6 +168,8 @@ export default function MissionForm({
         title: title.trim(),
         description: description.trim(),
         location: location.trim(),
+        osPag: osPag.trim() || undefined,
+        osDme: osDme.trim() || undefined,
         startDate,
         endDate,
         rankId,
@@ -173,6 +181,8 @@ export default function MissionForm({
         title: title.trim(),
         description: description.trim(),
         location: location.trim(),
+        osPag: osPag.trim() || undefined,
+        osDme: osDme.trim() || undefined,
         startDate,
         endDate,
         rankId,
@@ -184,6 +194,8 @@ export default function MissionForm({
     setTitle('');
     setDescription('');
     setLocation('');
+    setOsPag('');
+    setOsDme('');
     setZeroFoodDates([]);
     // Advance default dates forward to prevent overlapping accidentally
     setStartDate(endDate);
@@ -374,6 +386,32 @@ export default function MissionForm({
                   onChange={(e) => setEndDate(e.target.value)}
                   className="w-full text-sm px-3.5 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-850 font-mono"
                   id="reg-end"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">OS PAG</label>
+                <input
+                  type="text"
+                  placeholder="Ex: OS PAG nº 123/2026"
+                  value={osPag}
+                  onChange={(e) => setOsPag(e.target.value)}
+                  className="w-full text-sm px-3.5 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-850"
+                  id="reg-os-pag"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">OS DME</label>
+                <input
+                  type="text"
+                  placeholder="Ex: OS DME nº 456/2026"
+                  value={osDme}
+                  onChange={(e) => setOsDme(e.target.value)}
+                  className="w-full text-sm px-3.5 py-2 border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-800/20 focus:border-emerald-850"
+                  id="reg-os-dme"
                 />
               </div>
             </div>

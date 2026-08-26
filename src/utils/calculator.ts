@@ -245,6 +245,8 @@ export function calculatePay(missions: Mission[], defaultUserRankId: string = 't
       maneuverPay,
       description: mission.description,
       location: mission.location,
+      osPag: mission.osPag,
+      osDme: mission.osDme,
       rankId: activeRankId,
       rankName: rankObj.name,
       soldoValue: rankObj.soldo,

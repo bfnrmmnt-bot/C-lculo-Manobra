@@ -554,6 +554,21 @@ export default function MissionHistory({
                         )}
                       </div>
 
+                      {(calc.osPag || calc.osDme) && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                          {calc.osPag && (
+                            <span className="inline-flex items-center text-[10px] font-medium text-emerald-900 bg-emerald-50/80 border border-emerald-200/60 px-2 py-0.5 rounded-md">
+                              <span className="font-bold mr-1">OS PAG:</span> {calc.osPag}
+                            </span>
+                          )}
+                          {calc.osDme && (
+                            <span className="inline-flex items-center text-[10px] font-medium text-sky-900 bg-sky-50/80 border border-sky-200/60 px-2 py-0.5 rounded-md">
+                              <span className="font-bold mr-1">OS DME:</span> {calc.osDme}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       <div className="text-xs text-zinc-600 line-clamp-2 italic pt-0.5">
                         {calc.description || 'Sem descrição cadastrada para esta missão.'}
                       </div>

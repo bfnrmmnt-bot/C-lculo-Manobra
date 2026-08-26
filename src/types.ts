@@ -20,6 +20,8 @@ export interface Mission {
   endDate: string;   // ISO String (YYYY-MM-DDTHH:mm)
   description?: string;
   location?: string;
+  osPag?: string;
+  osDme?: string;
   rankId?: string; // Associated rank for this specific mission
   received?: boolean;
   zeroFoodDates?: string[]; // Array of YYYY-MM-DD dates where food allowance is zeroed
@@ -53,6 +55,8 @@ export interface MissionCalculation {
   maneuverPay: number; // 2% maneuver only amount
   description?: string;
   location?: string;
+  osPag?: string;
+  osDme?: string;
   rankId?: string;
   rankName?: string;
   soldoValue?: number;
